@@ -41,8 +41,13 @@ elements:
       returns: []
       executes:
         bin: []
-        hex: 0x0a00040100520000011101060c000100
-        asm: []
+        hex: ""
+        asm:
+          - CARGS $0
+          - OBTAIN $1 &0
+          - SETFLD $0 &0 $1
+          - LDPTR1 $1 0x6
+          - CALLR $0 $1 $0
       catches: []
   - ptr: 3
     deps:
@@ -58,8 +63,10 @@ elements:
           type: bool
       executes:
         bin: []
-        hex: "0x800000050000"
-        asm: []
+        hex: ""
+        asm:
+          - PLOAD $0 &0
+          - YIELD $0 &0
       catches: []
   - ptr: 4
     deps:
@@ -76,8 +83,13 @@ elements:
       returns: []
       executes:
         bin: []
-        hex: 0x0a00040100520000011101060c000100
-        asm: []
+        hex: ""
+        asm:
+          - CARGS $0
+          - OBTAIN $1 &0
+          - SETFLD $0 &0 $1
+          - LDPTR1 $1 0x6
+          - CALLR $0 $1 $0
       catches: []
   - ptr: 5
     deps:
@@ -90,8 +102,12 @@ elements:
       returns: []
       executes:
         bin: []
-        hex: 0x800000620100240001810000
-        asm: []
+        hex: ""
+        asm:
+          - PLOAD $0 &0
+          - NOT $1 $0
+          - COPY $0 $1
+          - PSAVE $0 &0
       catches: []
   - ptr: 6
     deps:
@@ -107,6 +123,8 @@ elements:
       returns: []
       executes:
         bin: []
-        hex: "0x040000810000"
-        asm: []
+        hex: ""
+        asm:
+          - OBTAIN $0 &0
+          - PSAVE $0 &0
       catches: []
