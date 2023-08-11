@@ -1,0 +1,112 @@
+syntax: 0.1.0
+engine:
+  kind: PISA
+  flags: []
+elements:
+  - ptr: 0
+    deps: []
+    kind: state
+    data:
+      kind: persistent
+      fields:
+        - slot: 0
+          label: Value
+          type: bool
+  - ptr: 1
+    deps:
+      - 0
+    kind: routine
+    data:
+      name: Init!
+      kind: deployer
+      accepts: []
+      returns: []
+      executes:
+        bin: []
+        hex: ""
+        asm: []
+      catches: []
+  - ptr: 2
+    deps:
+      - 6
+      - 0
+    kind: routine
+    data:
+      name: Seed!
+      kind: deployer
+      accepts:
+        - slot: 0
+          label: initial
+          type: bool
+      returns: []
+      executes:
+        bin: []
+        hex: 0x0a00040100520000011101060c000100
+        asm: []
+      catches: []
+  - ptr: 3
+    deps:
+      - 0
+    kind: routine
+    data:
+      name: Get
+      kind: invokable
+      accepts: []
+      returns:
+        - slot: 0
+          label: value
+          type: bool
+      executes:
+        bin: []
+        hex: "0x800000050000"
+        asm: []
+      catches: []
+  - ptr: 4
+    deps:
+      - 6
+      - 0
+    kind: routine
+    data:
+      name: Set!
+      kind: invokable
+      accepts:
+        - slot: 0
+          label: setval
+          type: bool
+      returns: []
+      executes:
+        bin: []
+        hex: 0x0a00040100520000011101060c000100
+        asm: []
+      catches: []
+  - ptr: 5
+    deps:
+      - 0
+    kind: routine
+    data:
+      name: Toggle!
+      kind: invokable
+      accepts: []
+      returns: []
+      executes:
+        bin: []
+        hex: 0x800000620100240001810000
+        asm: []
+      catches: []
+  - ptr: 6
+    deps:
+      - 0
+    kind: routine
+    data:
+      name: set!
+      kind: local
+      accepts:
+        - slot: 0
+          label: value
+          type: bool
+      returns: []
+      executes:
+        bin: []
+        hex: "0x040000810000"
+        asm: []
+      catches: []
