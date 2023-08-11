@@ -1,0 +1,25 @@
+// A simple logic with an internal U64 state
+// that can be retrieved or incremented
+coco Counter
+
+// The persistent state is used to define stateful
+// values managed intrinsically by the logic. Only 
+// a single call can access these values at a time.
+state persistent:
+    Value U64
+
+// Init!() deployer is a constructor that leaves
+// the persistent state untouched at the deploy time.
+endpoint deployer Init!():
+    pass
+
+// Get() is an invokable that returns the 
+// current value for the logic state
+endpoint invokable Get() -> (value U64):
+    observe value <- Counter.State.Value
+
+// Increase!() is an invokable that 
+// increments U64 value in the logic state
+endpoint invokable Increase!():
+    mutate value <- Counter.State.Value:
+        value += 1
