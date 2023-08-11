@@ -22,8 +22,9 @@ you can compile to other file formats apart from `YAML`, such as `JSON` or `POLO
 ```shell
 coco compile -f POLO
 ```
-## Catching Errors
-The token ledger contract throws errors if balance in your account is insufficient.
-To decode the error message run 'errdecode <error> from PISA.
 
 **POLO** is the expected format for deploying to the MOI Protocol with the _IxLogicDeploy_ interaction.
+
+## Catching Errors
+The token ledger contract throws errors if balance in your account is insufficient.
+To decode the error message run 'errdecode <errorcode> from PISA'
