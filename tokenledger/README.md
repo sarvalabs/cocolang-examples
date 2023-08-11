@@ -27,4 +27,4 @@ coco compile -f POLO
 
 ## Catching Errors
 The token ledger contract throws errors if balance in your account is insufficient.
-To decode the error message run 'errdecode <errorcode> from PISA'
+To decode the error message run ```errdecode <errorcode> from PISA```
