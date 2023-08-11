@@ -1,0 +1,64 @@
+syntax: 0.1.0
+engine:
+  kind: PISA
+  flags: []
+elements:
+  - ptr: 0
+    deps: []
+    kind: state
+    data:
+      kind: persistent
+      fields:
+        - slot: 0
+          label: Value
+          type: u64
+  - ptr: 1
+    deps:
+      - 0
+    kind: routine
+    data:
+      name: Init!
+      kind: deployer
+      accepts: []
+      returns: []
+      executes:
+        bin: []
+        hex: ""
+        asm: []
+      catches: []
+  - ptr: 2
+    deps:
+      - 0
+    kind: routine
+    data:
+      name: Get
+      kind: invokable
+      accepts: []
+      returns:
+        - slot: 0
+          label: value
+          type: u64
+      executes:
+        bin: []
+        hex: ""
+        asm:
+          - PLOAD $0 &0
+          - YIELD $0 &0
+      catches: []
+  - ptr: 3
+    deps:
+      - 0
+    kind: routine
+    data:
+      name: Increase!
+      kind: invokable
+      accepts: []
+      returns: []
+      executes:
+        bin: []
+        hex: ""
+        asm:
+          - PLOAD $0 &0
+          - INCR $0
+          - PSAVE $0 &0
+      catches: []
