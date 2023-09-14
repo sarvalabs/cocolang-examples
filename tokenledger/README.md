@@ -2,11 +2,14 @@
 The `TokenLedger` module is a simple logic with an internal 
 state that implements a tokenledger with necessary functionality.
 
+The [coco.nut](./coco.nut) file in this directory contains information about
+the module's compile preferences along with other application metadata
+
 ### Compiling the Module
 The `tokenledger.coco` module can be compiled to the target the PISA Runtime on MOI
 by running the following command. Other compile targets are not currently supported.
 ```shell
-coco compile .
+coco compile
 ```
 
 The `tokenledger.yaml` file is a manifest file that is the compiled artifact for 
