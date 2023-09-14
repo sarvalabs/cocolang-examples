@@ -3,9 +3,9 @@ version = "0.3.0"
 
 [module]
 name = "Counter"
-version = "0.0.1"
-license = ""
-repository = ""
+version = "1.0.0"
+license = "MIT"
+repository = "https://github.com/sarvalabs/cocolang-examples/counter"
 authors = ""
 
 [target]
