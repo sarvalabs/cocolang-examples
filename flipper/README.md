@@ -2,11 +2,14 @@
 The `Flipper` module is a simple logic with an internal 
 boolean state that can be flipped, retrieved and modified.
 
+The [coco.nut](./coco.nut) file in this directory contains information about 
+the module's compile preferences along with other application metadata
+
 ### Compiling the Module
 The `flipper.coco` module can be compiled to the target the PISA Runtime on MOI
 by running the following command. Other compile targets are not currently supported.
 ```shell
-coco compile .
+coco compile
 ```
 
 The `flipper.yaml` file is a manifest file that is the compiled artifact for 
