@@ -105,8 +105,7 @@ elements:
         hex: ""
         asm:
           - PLOAD $0 &0
-          - NOT $1 $0
-          - COPY $0 $1
+          - NOT $0 $0
           - PSAVE $0 &0
       catches: []
   - ptr: 6
