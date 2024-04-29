@@ -1,12 +1,12 @@
 [coco]
-version = "0.3.0"
+version = "0.2.0"
 
 [module]
 name = "Flipper"
-version = "1.0.0"
-license = "MIT"
-repository = "https://github.com/sarvalabs/cocolang-examples/flipper"
-authors = ""
+version = "0.0.1"
+license = []
+repository = ""
+authors = []
 
 [target]
 os = "MOI"
@@ -14,7 +14,9 @@ arch = "PISA"
 
 [target.moi]
 format = "YAML"
-output = "flipper"
+output = "flipper.yaml"
 
 [target.pisa]
 format = "BIN"
+
+[dependencies.local]
