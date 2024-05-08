@@ -6,20 +6,20 @@ coco Counter
 // values managed intrinsically by the logic. Only 
 // a single call can access these values at a time.
 state persistent:
-    Value U64
+    value U64
 
-// Init!() deployer is a constructor that leaves
-// the persistent state untouched at the deploy time.
-endpoint deployer Init!():
+// Init() deployer is a constructor that initializes the persitent state
+// variables to their default values at the deploy time. 
+endpoint deployer persistent Init():
     pass
 
 // Get() is an invokable that returns the 
 // current value for the logic state
-endpoint invokable Get() -> (value U64):
-    observe value <- Counter.State.Value
+endpoint invokable readonly Get() -> (value U64):
+    observe value <- Counter.State.value
 
-// Increase!() is an invokable that 
+// Increase() is an invokable that 
 // increments U64 value in the logic state
-endpoint invokable Increase!():
-    mutate value <- Counter.State.Value:
+endpoint invokable persistent Increase ():
+    mutate value <- Counter.State.value:
         value += 1

@@ -1,12 +1,12 @@
 [coco]
-version = "0.3.0"
+version = "0.4.0"
 
 [module]
 name = "Counter"
-version = "1.0.0"
-license = "MIT"
+version = "2.0.0"
+license = ["MIT"]
 repository = "https://github.com/sarvalabs/cocolang-examples/counter"
-authors = ""
+authors = ["Manish Meganathan <https://github.com/sarvalabs-manish>", "Bhimgouda Patil <https://github.com/Bhimgouda>", "Sarthak Shastri <https://github.com/sarvalabs-sarthak>]
 
 [target]
 os = "MOI"
@@ -18,3 +18,5 @@ output = "counter"
 
 [target.pisa]
 format = "BIN"
+
+[dependencies.local]

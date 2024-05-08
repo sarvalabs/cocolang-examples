@@ -11,9 +11,9 @@ state persistent:
     supply      U256
     balances    Map[Address]U256
 
-// Seed!() deployer is constructor that sets
+// Seed() deployer is constructor that sets
 // given initial value for the logic state.
-endpoint deployer Seed!(symbol String, supply U256):
+endpoint deployer persistent Seed(symbol String, supply U256):
     mutate symbol -> TokenLedger.State.symbol
     mutate supply -> TokenLedger.State.supply
 
@@ -22,36 +22,36 @@ endpoint deployer Seed!(symbol String, supply U256):
 
 // Symbol() is an invokable that returns the 
 // current symbol for the logic state
-endpoint invokable Symbol() -> (symbol String):
+endpoint invokable readonly Symbol() -> (symbol String):
     observe symbol <- TokenLedger.State.symbol
 
 // Decimals() is an invokable that returns the 
 // U64 value '2' to the output slot
-endpoint invokable Decimals() -> (decimals U64):
+endpoint invokable readonly Decimals() -> (decimals U64):
     yield decimals 2
 
 // TotalSupply() is an invokable that returns the 
 // supply U64 value stored in the logic state
-endpoint invokable TotalSupply() -> (supply U256):
+endpoint invokable readonly TotalSupply() -> (supply U256):
     observe supply <- TokenLedger.State.supply
 
 // BalanceOf() is an invokable that returns the 
 // balance of the given address in the logic state
-endpoint invokable BalanceOf(address Address) -> (balance U256):
+endpoint invokable readonly BalanceOf(address Address) -> (balance U256):
     observe balances <- TokenLedger.State.balances:
         yield balance balances[address]
 
-// Transfer!() is a stateful invokable that 
+// Transfer() is a stateful invokable that 
 // moves the given amount from the sender's 
 // wallet to the receiver's given address
-endpoint invokable Transfer!(receiver Address, amount U256):
-    var sender = Address(Sender)
+endpoint invokable persistent Transfer(receiver Address, amount U256):
+    memory sender = Address(Sender)
 
-    if !sender: throw f"zero address for sender"
-    if !receiver: throw f"zero address for receiver"
+    if sender: throw f"zero address for sender"
+    if receiver: throw f"zero address for receiver"
 
     mutate balances <- TokenLedger.State.balances:
-        var balance = balances[sender]
+        memory balance = balances[sender]
 
         if balance < amount:
             throw "insufficient balance for sender"
@@ -59,11 +59,11 @@ endpoint invokable Transfer!(receiver Address, amount U256):
         balances[sender] = balance - amount
         balances[receiver] += amount
 
-// Mint!() is a stateful invokable that  
+// Mint() is a stateful invokable that  
 // adds the given amount to supply
 // and balance of sender's wallet
-endpoint invokable Mint!(amount U256):
-    var account = Address(Sender)
+endpoint invokable persistent Mint(amount U256):
+    memory account = Address(Sender)
 
     mutate supply <- TokenLedger.State.supply:
         supply += amount
@@ -71,14 +71,14 @@ endpoint invokable Mint!(amount U256):
     mutate balances <- TokenLedger.State.balances:
         balances[account] += amount
 
-// Burn!() is a stateful invokable that  
+// Burn() is a stateful invokable that  
 // subtracts the given amount to supply
 // and balance of sender's wallet
-endpoint invokable Burn!(amount U256):
-    var account = Address(Sender) 
+endpoint invokable persistent Burn(amount U256):
+    memory account = Address(Sender) 
 
     mutate balances <- TokenLedger.State.balances:
-        var balance = balances[account]
+        memory balance = balances[account]
 
         if balance < amount:
             throw "insufficient balance for burn"

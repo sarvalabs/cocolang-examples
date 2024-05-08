@@ -6,35 +6,35 @@ coco Flipper
 // values managed intrinsically by the logic. Only 
 // a single call can access these values at a time.
 state persistent:
-    Value Bool
+    value Bool
 
-// Init!() deployer is a constructor that leaves
-// the persistent state untouched at the deploy time.
-endpoint deployer Init!():
+// Init() deployer is a constructor that initializes the persitent state
+// variables to their default values at the deploy time. 
+endpoint deployer persistent Init():
     pass
 
-// Seed!() deployer is an alternate constructor
+// Seed() deployer is an alternate constructor
 // that sets given initial value for the logic state.
-endpoint deployer Seed!(initial Bool):
-    set!(value: initial)
+endpoint deployer persistent Seed(initial Bool):
+    set(value: initial)
 
 // Get() is an invokable that returns 
 // the current value of the logic state
-endpoint invokable Get() -> (value Bool):
-    observe value <- Flipper.State.Value
+endpoint invokable readonly Get() -> (value Bool):
+    observe value <- Flipper.State.value
 
-// Set!() is an invokable that sets 
+// Set() is an invokable that sets 
 // the given value to the logic state
-endpoint invokable Set!(setval Bool):
-    set!(value: setval)
+endpoint invokable persistent Set(setval Bool):
+    set(value: setval)
 
-// Toggle!() is an invokable that flips 
+// Toggle() is an invokable that flips 
 // the current value of the logic state
-endpoint invokable Toggle!():
-    mutate value <- Flipper.State.Value:
-        value = !value
+endpoint invokable persistent Toggle():
+    mutate value <- Flipper.State.value:
+        value = value
 
-// set!() is a local function that 
+// set() is a local function that 
 // sets given value to the logic state
-func set!(value Bool):
-    mutate value -> Flipper.State.Value
+func persistent set(value Bool):
+    mutate value -> Flipper.State.value
