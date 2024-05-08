@@ -11,7 +11,7 @@ state persistent:
     supply      U256
     balances    Map[Address]U256
 
-// Seed!() deployer is constructor that sets
+// Seed() deployer is constructor that sets
 // given initial value for the logic state.
 endpoint deployer persistent Seed(symbol String, supply U256):
     mutate symbol -> TokenLedger.State.symbol
@@ -41,14 +41,14 @@ endpoint invokable readonly BalanceOf(address Address) -> (balance U256):
     observe balances <- TokenLedger.State.balances:
         yield balance balances[address]
 
-// Transfer!() is a stateful invokable that 
+// Transfer() is a stateful invokable that 
 // moves the given amount from the sender's 
 // wallet to the receiver's given address
 endpoint invokable persistent Transfer(receiver Address, amount U256):
     memory sender = Address(Sender)
 
-    if !sender: throw f"zero address for sender"
-    if !receiver: throw f"zero address for receiver"
+    if sender: throw f"zero address for sender"
+    if receiver: throw f"zero address for receiver"
 
     mutate balances <- TokenLedger.State.balances:
         memory balance = balances[sender]
@@ -59,7 +59,7 @@ endpoint invokable persistent Transfer(receiver Address, amount U256):
         balances[sender] = balance - amount
         balances[receiver] += amount
 
-// Mint!() is a stateful invokable that  
+// Mint() is a stateful invokable that  
 // adds the given amount to supply
 // and balance of sender's wallet
 endpoint invokable persistent Mint(amount U256):
@@ -71,7 +71,7 @@ endpoint invokable persistent Mint(amount U256):
     mutate balances <- TokenLedger.State.balances:
         balances[account] += amount
 
-// Burn!() is a stateful invokable that  
+// Burn() is a stateful invokable that  
 // subtracts the given amount to supply
 // and balance of sender's wallet
 endpoint invokable persistent Burn(amount U256):

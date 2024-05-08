@@ -8,7 +8,7 @@ coco Counter
 state persistent:
     value U64
 
-// Init!() deployer is a constructor that initializes the persitent state
+// Init() deployer is a constructor that initializes the persitent state
 // variables to their default values at the deploy time. 
 endpoint deployer persistent Init():
     pass
@@ -18,7 +18,7 @@ endpoint deployer persistent Init():
 endpoint invokable readonly Get() -> (value U64):
     observe value <- Counter.State.value
 
-// Increase!() is an invokable that 
+// Increase() is an invokable that 
 // increments U64 value in the logic state
 endpoint invokable persistent Increase ():
     mutate value <- Counter.State.value:
