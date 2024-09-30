@@ -2,6 +2,7 @@ syntax: 1
 engine:
   kind: PISA
   flags: []
+  version: 0.3.2
 elements:
 - ptr: 0
   kind: state
@@ -18,7 +19,7 @@ elements:
   data:
     name: Init
     mode: persistent
-    kind: deployer
+    kind: deploy
     accepts: []
     returns: []
     executes:
@@ -31,22 +32,17 @@ elements:
   data:
     name: Get
     mode: readonly
-    kind: invokable
+    kind: invoke
     accepts: []
     returns:
     - slot: 0
       label: value
       type: u64
     executes:
-      bin:
-      - 128
-      - 0
-      - 0
-      - 5
-      - 0
-      - 0
-      - 130
-      - 0
+      asm:
+      - PLOAD $0 &0
+      - YIELD $0 &0
+      - PFREE $0
     catches: []
 - ptr: 3
   deps:
@@ -55,22 +51,14 @@ elements:
   data:
     name: Increase
     mode: persistent
-    kind: invokable
+    kind: invoke
     accepts: []
     returns: []
     executes:
-      bin:
-      - 128
-      - 0
-      - 0
-      - 49
-      - 1
-      - 0
-      - 99
-      - 1
-      - 48
-      - 0
-      - 1
-      - 129
-      - 0
+      asm:
+      - PLOAD $0 &0
+      - GATHER $1 $0
+      - INCR $1
+      - DISPERSE $0 $1
+      - PSAVE $0
     catches: []

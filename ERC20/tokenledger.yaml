@@ -1,0 +1,365 @@
+syntax: 1
+engine:
+  kind: PISA
+  flags: []
+  version: 0.3.2
+elements:
+- ptr: 0
+  kind: constant
+  data:
+    type: string
+    value: '0x0673656564656420'
+- ptr: 1
+  kind: constant
+  data:
+    type: string
+    value: '0x06207769746820'
+- ptr: 2
+  kind: constant
+  data:
+    type: string
+    value: '0x0620'
+- ptr: 3
+  kind: constant
+  data:
+    type: u64
+    value: '0x0312'
+- ptr: 4
+  kind: constant
+  data:
+    type: string
+    value: 0x0673656e64657220686173206e6f2062616c616e6365
+- ptr: 5
+  kind: constant
+  data:
+    type: string
+    value: 0x0673656e6465722068617320696e73756666696369656e742062616c616e6365
+- ptr: 6
+  kind: constant
+  data:
+    type: string
+    value: 0x06696e76616c6964206275726e20616d6f756e743a206578636565647320737570706c79
+- ptr: 7
+  kind: constant
+  data:
+    type: string
+    value: 0x06696e76616c6964206275726e20616d6f756e743a2073656e64657220686173206e6f2062616c616e6365
+- ptr: 8
+  kind: constant
+  data:
+    type: string
+    value: 0x06696e76616c6964206275726e20616d6f756e743a20696e73756666696369656e742062616c616e6365
+- ptr: 9
+  kind: typedef
+  data: map[address]u256
+- ptr: 10
+  kind: event
+  data:
+    name: Transfer
+    topics: 2
+    fields:
+    - slot: 0
+      label: sender
+      type: address
+    - slot: 1
+      label: receiver
+      type: address
+    - slot: 2
+      label: amount
+      type: u256
+- ptr: 11
+  kind: state
+  data:
+    mode: persistent
+    fields:
+    - slot: 0
+      label: Symbol
+      type: string
+    - slot: 1
+      label: Supply
+      type: u256
+    - slot: 2
+      label: Balances
+      type: map[address]u256
+- ptr: 12
+  deps:
+  - 0
+  - 1
+  - 2
+  - 11
+  kind: routine
+  data:
+    name: Seed
+    mode: persistent
+    kind: deploy
+    accepts:
+    - slot: 0
+      label: symbol
+      type: string
+    - slot: 1
+      label: supply
+      type: u256
+    returns: []
+    executes:
+      asm:
+      - PLOAD $0 &0
+      - OBTAIN $1 &0
+      - DISPERSE $0 $1
+      - PSAVE $0
+      - PLOAD $0 &1
+      - OBTAIN $2 &1
+      - DISPERSE $0 $2
+      - PSAVE $0
+      - PLOAD $0 &2
+      - SENDER $3
+      - ADDR $3 $3
+      - SETKEY $0 $3 $2
+      - PSAVE $0
+      - LDPTR1 $0 0x0
+      - CONST $0 $0
+      - SENDER $3
+      - ADDR $3 $3
+      - STR $3 $3
+      - JOIN $0 $0 $3
+      - LDPTR1 $3 0x1
+      - CONST $3 $3
+      - JOIN $0 $0 $3
+      - STR $2 $2
+      - JOIN $0 $0 $2
+      - LDPTR1 $2 0x2
+      - CONST $2 $2
+      - JOIN $0 $0 $2
+      - JOIN $0 $0 $1
+      - EVENT $0 $0
+      - LOCAL $1
+      - ADDR $1 $1
+      - EMIT $0 $1
+    catches: []
+- ptr: 13
+  deps:
+  - 3
+  kind: routine
+  data:
+    name: Decimals
+    mode: readonly
+    kind: invoke
+    accepts: []
+    returns:
+    - slot: 0
+      label: decimals
+      type: u64
+    executes:
+      asm:
+      - LDPTR1 $0 0x3
+      - CONST $0 $0
+      - YIELD $0 &0
+    catches: []
+- ptr: 14
+  deps:
+  - 11
+  kind: routine
+  data:
+    name: TotalSupply
+    mode: readonly
+    kind: invoke
+    accepts: []
+    returns:
+    - slot: 0
+      label: supply
+      type: u256
+    executes:
+      asm:
+      - PLOAD $0 &1
+      - YIELD $0 &0
+      - PFREE $0
+    catches: []
+- ptr: 15
+  deps:
+  - 11
+  kind: routine
+  data:
+    name: BalanceOf
+    mode: readonly
+    kind: invoke
+    accepts:
+    - slot: 0
+      label: addr
+      type: address
+    returns:
+    - slot: 0
+      label: balance
+      type: u256
+    executes:
+      asm:
+      - PLOAD $0 &2
+      - OBTAIN $1 &0
+      - HASKEY $2 $0 $1
+      - NOT $2 $2
+      - LDPTR1 $3 0x8
+      - JUMPI $3 $2
+      - GETKEY $1 $0 $1
+      - YIELD $1 &0
+      - DEST
+      - PFREE $0
+    catches: []
+- ptr: 16
+  deps:
+  - 4
+  - 5
+  - 10
+  - 11
+  kind: routine
+  data:
+    name: Transfer
+    mode: persistent
+    kind: invoke
+    accepts:
+    - slot: 0
+      label: amount
+      type: u256
+    - slot: 1
+      label: receiver
+      type: address
+    returns: []
+    executes:
+      asm:
+      - SENDER $0
+      - ADDR $0 $0
+      - PLOAD $1 &2
+      - HASKEY $2 $1 $0
+      - LDPTR1 $3 0x9
+      - JUMPI $3 $2
+      - LDPTR1 $2 0x4
+      - CONST $2 $2
+      - THROW $2
+      - DEST
+      - GETKEY $2 $1 $0
+      - OBTAIN $3 &0
+      - LT $4 $2 $3
+      - NOT $4 $4
+      - LDPTR1 $5 0x13
+      - JUMPI $5 $4
+      - LDPTR1 $4 0x5
+      - CONST $4 $4
+      - THROW $4
+      - DEST
+      - OBTAIN $4 &1
+      - HASKEY $5 $1 $4
+      - LDPTR1 $6 0x1a
+      - JUMPI $6 $5
+      - PMAKE $5 &7
+      - SETKEY $1 $4 $5
+      - DEST
+      - SUB $2 $2 $3
+      - SETKEY $1 $0 $2
+      - GETKEY $2 $1 $4
+      - ADD $2 $2 $3
+      - SETKEY $1 $4 $2
+      - PSAVE $1
+      - CARGS $1
+      - SETFLD $1 &0 $0
+      - OBTAIN $0 &1
+      - SETFLD $1 &1 $0
+      - OBTAIN $0 &0
+      - SETFLD $1 &2 $0
+      - LDPTR1 $0 0xa
+      - EVMAKE $0 $0 $1
+      - LOCAL $1
+      - ADDR $1 $1
+      - EMIT $0 $1
+    catches: []
+- ptr: 17
+  deps:
+  - 11
+  kind: routine
+  data:
+    name: Mint
+    mode: persistent
+    kind: invoke
+    accepts:
+    - slot: 0
+      label: amount
+      type: u256
+    returns: []
+    executes:
+      asm:
+      - PLOAD $0 &1
+      - GATHER $1 $0
+      - OBTAIN $2 &0
+      - ADD $2 $1 $2
+      - COPY $1 $2
+      - DISPERSE $0 $1
+      - PSAVE $0
+      - PLOAD $0 &2
+      - SENDER $1
+      - ADDR $1 $1
+      - HASKEY $2 $0 $1
+      - LDPTR1 $3 0xf
+      - JUMPI $3 $2
+      - PMAKE $2 &7
+      - SETKEY $0 $1 $2
+      - DEST
+      - GETKEY $2 $0 $1
+      - OBTAIN $3 &0
+      - ADD $2 $2 $3
+      - SETKEY $0 $1 $2
+      - PSAVE $0
+    catches: []
+- ptr: 18
+  deps:
+  - 6
+  - 7
+  - 8
+  - 11
+  kind: routine
+  data:
+    name: Burn
+    mode: persistent
+    kind: invoke
+    accepts:
+    - slot: 0
+      label: amount
+      type: u256
+    returns: []
+    executes:
+      asm:
+      - PLOAD $0 &1
+      - GATHER $1 $0
+      - OBTAIN $2 &0
+      - LT $3 $1 $2
+      - NOT $3 $3
+      - LDPTR1 $4 0xa
+      - JUMPI $4 $3
+      - LDPTR1 $3 0x6
+      - CONST $3 $3
+      - THROW $3
+      - DEST
+      - SUB $2 $1 $2
+      - COPY $1 $2
+      - DISPERSE $0 $1
+      - PSAVE $0
+      - PLOAD $0 &2
+      - SENDER $1
+      - ADDR $1 $1
+      - HASKEY $2 $0 $1
+      - LDPTR1 $3 0x18
+      - JUMPI $3 $2
+      - LDPTR1 $2 0x7
+      - CONST $2 $2
+      - THROW $2
+      - DEST
+      - GETKEY $2 $0 $1
+      - OBTAIN $3 &0
+      - LT $2 $2 $3
+      - NOT $2 $2
+      - LDPTR1 $4 0x22
+      - JUMPI $4 $2
+      - LDPTR1 $2 0x8
+      - CONST $2 $2
+      - THROW $2
+      - DEST
+      - GETKEY $2 $0 $1
+      - SUB $2 $2 $3
+      - SETKEY $0 $1 $2
+      - PSAVE $0
+    catches: []

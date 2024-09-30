@@ -7,7 +7,7 @@ elements:
 - ptr: 0
   kind: state
   data:
-    mode: persistent
+    mode: ephemeral
     fields:
     - slot: 0
       label: value
@@ -18,36 +18,14 @@ elements:
   kind: routine
   data:
     name: Init
-    mode: persistent
-    kind: deploy
+    mode: ephemeral
+    kind: enlist
     accepts: []
     returns: []
     executes:
       bin: []
     catches: []
 - ptr: 2
-  deps:
-  - 6
-  - 0
-  kind: routine
-  data:
-    name: Seed
-    mode: persistent
-    kind: deploy
-    accepts:
-    - slot: 0
-      label: initial
-      type: bool
-    returns: []
-    executes:
-      asm:
-      - CARGS $0
-      - OBTAIN $1 &0
-      - SETFLD $0 &0 $1
-      - LDPTR1 $1 0x6
-      - CALLR $0 $1 $0
-    catches: []
-- ptr: 3
   deps:
   - 0
   kind: routine
@@ -62,22 +40,23 @@ elements:
       type: bool
     executes:
       asm:
-      - PLOAD $0 &0
-      - YIELD $0 &0
-      - PFREE $0
+      - SENDER $0
+      - ELOAD $1 &0 $0
+      - YIELD $1 &0
+      - EFREE $1 $0
     catches: []
-- ptr: 4
+- ptr: 3
   deps:
-  - 6
+  - 5
   - 0
   kind: routine
   data:
     name: Set
-    mode: persistent
+    mode: ephemeral
     kind: invoke
     accepts:
     - slot: 0
-      label: setval
+      label: value
       type: bool
     returns: []
     executes:
@@ -85,33 +64,35 @@ elements:
       - CARGS $0
       - OBTAIN $1 &0
       - SETFLD $0 &0 $1
-      - LDPTR1 $1 0x6
+      - LDPTR1 $1 0x5
       - CALLR $0 $1 $0
+    catches: []
+- ptr: 4
+  deps:
+  - 0
+  kind: routine
+  data:
+    name: Toggle
+    mode: ephemeral
+    kind: invoke
+    accepts: []
+    returns: []
+    executes:
+      asm:
+      - SENDER $0
+      - ELOAD $1 &0 $0
+      - GATHER $2 $1
+      - NOT $2 $2
+      - DISPERSE $1 $2
+      - ESAVE $1 $0
     catches: []
 - ptr: 5
   deps:
   - 0
   kind: routine
   data:
-    name: Toggle
-    mode: persistent
-    kind: invoke
-    accepts: []
-    returns: []
-    executes:
-      asm:
-      - PLOAD $0 &0
-      - GATHER $1 $0
-      - DISPERSE $0 $1
-      - PSAVE $0
-    catches: []
-- ptr: 6
-  deps:
-  - 0
-  kind: routine
-  data:
     name: set
-    mode: persistent
+    mode: ephemeral
     kind: internal
     accepts:
     - slot: 0
@@ -120,8 +101,9 @@ elements:
     returns: []
     executes:
       asm:
-      - PLOAD $0 &0
-      - OBTAIN $1 &0
-      - DISPERSE $0 $1
-      - PSAVE $0
+      - SENDER $0
+      - ELOAD $1 &0 $0
+      - OBTAIN $2 &0
+      - DISPERSE $1 $2
+      - ESAVE $1 $0
     catches: []

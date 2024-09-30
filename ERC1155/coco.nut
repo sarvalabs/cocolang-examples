@@ -2,11 +2,11 @@
 version = "0.5.2"
 
 [module]
-name = "Counter"
+name = "MT"
 version = "0.0.1"
 license = []
-repository = "https://github.com/sarvalabs/cocolang-examples/counter"
-authors = ["Manish Meganathan <https://github.com/sarvalabs-manish>", "Bhimgouda Patil <https://github.com/Bhimgouda>", "Sarthak Shastri <https://github.com/sarvalabs-sarthak>"]
+repository = "https://github.com/sarvalabs/cocolang-examples/ERC1155"
+authors = ["Akash Paul <https://github.com/sarvalabs-akashpaul>"]
 
 [target]
 os = "MOI"
@@ -14,7 +14,7 @@ arch = "PISA"
 
 [target.moi]
 format = "YAML"
-output = "counter"
+output = "nft"
 
 [target.pisa]
 format = "ASM"

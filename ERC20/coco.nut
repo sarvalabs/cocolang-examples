@@ -1,10 +1,10 @@
 [coco]
-version = "0.4.0"
+version = "0.5.2"
 
 [module]
 name = "TokenLedger"
-version = "2.0.0"
-license = ["MIT"]
+version = "0.0.1"
+license = []
 repository = "https://github.com/sarvalabs/cocolang-examples/tokenledger"
 authors = ["Manish Meganathan <https://github.com/sarvalabs-manish>", "Bhimgouda Patil <https://github.com/Bhimgouda>", "Sarthak Shastri <https://github.com/sarvalabs-sarthak>"]
 
@@ -17,6 +17,19 @@ format = "YAML"
 output = "tokenledger"
 
 [target.pisa]
-format = "BIN"
+format = "ASM"
+version = "0.3.2"
 
-[dependencies.local]
+[lab.render]
+big_int_as_hex = true
+bytes_as_hex = false
+
+[lab.config.default]
+url = "http://127.0.0.1:6060"
+env = "main"
+
+[lab.scripts]
+test-toggle = ["engines", "users", "logics"]
+
+[scripts]
+compile = "coco compile ."
