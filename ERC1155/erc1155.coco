@@ -1,0 +1,166 @@
+coco MT //Multi Tokens
+      
+class TokenMetadata:
+    field tokenId U256
+    field tokenURI String
+    field supply U256
+
+state persistent:
+    // token ID -> metadata
+    Tokens Map[U256]TokenMetadata
+    // owner -> token ID -> balance
+    BalanceOf Map[Address]Map[U256]U256
+    // token ID -> operator -> approval
+    OperatorApprovals Map[Address]Map[Address]Bool
+    // total tokens minted
+    TotalSupply U256
+    ContractName String
+    ContractSymbol String
+
+event TransferSingle:
+    topic operator Address
+    topic from Address
+    topic to Address
+    topic id U256
+    field value U256
+
+event TransferBatch:
+    topic operator Address
+    topic from Address
+    topic to Address
+
+event ApprovalForAll:
+    topic account Address
+    topic operator Address
+    topic approved Bool
+
+endpoint deploy Init(name String, symbol String):
+    mutate ContractName, ContractSymbol, Tokens, BalanceOf, OperatorApprovals, TotalSupply <- MT.ContractName, MT.ContractSymbol, MT.Tokens, MT.BalanceOf, MT.OperatorApprovals, MT.TotalSupply:
+        ContractName = name
+        ContractSymbol = symbol
+        disperse Tokens <- make(Map[U256]TokenMetadata)
+        disperse BalanceOf <- make(Map[Address]Map[U256]U256)
+        disperse OperatorApprovals <- make(Map[Address]Map[Address]Bool)
+        TotalSupply = 0
+
+func readonly _exists(tokenId U256) -> (exists Bool):
+    observe Tokens <- MT.Tokens:
+        return exists Tokens[tokenId]?
+
+func readonly _isApprovedForAll(account Address, operator Address) -> (isApproved Bool):
+    observe OperatorApprovals <- MT.OperatorApprovals:
+        if !OperatorApprovals[account]?:
+            return isApproved false
+        return isApproved OperatorApprovals[account][operator]
+
+endpoint invoke readonly balanceOf(account Address, id U256) -> (balance U256):
+    observe BalanceOf <- MT.BalanceOf:
+        if !BalanceOf[account]?:
+            return balance U256(0)
+        if !BalanceOf[account][id]?:
+            return balance U256(0)
+        return balance BalanceOf[account][id]
+
+endpoint invoke readonly balanceOfBatch(accounts []Address, ids []U256) -> (balances []U256):
+    if len(accounts) != len(ids):
+        throw "Accounts and IDs must have the same length"
+    observe BalanceOf <- MT.BalanceOf:
+        balances = make([]U256, len(accounts))
+        for i in range(0, len(accounts)):
+            if !BalanceOf[accounts[i]]?:
+                balances[i] = 0
+                continue
+            if !BalanceOf[accounts[i]][ids[i]]?:
+                balances[i] = 0
+                continue
+            balances[i] = BalanceOf[accounts[i]][ids[i]]
+
+endpoint invoke persistent setApprovalForAll(operator Address, approved Bool):
+    if operator == Address(Sender):
+        throw "Setting approval status for self"
+    mutate OperatorApprovals <- MT.OperatorApprovals:
+        if !OperatorApprovals[Address(Sender)]?:
+            disperse OperatorApprovals[Address(Sender)] <- make(Map[Address]Bool)
+        OperatorApprovals[Address(Sender)][operator] = approved
+    emit ApprovalForAll(Address(Sender), operator, approved)
+
+endpoint invoke readonly isApprovedForAll(account Address, operator Address) -> (isApproved Bool):
+    observe OperatorApprovals <- MT.OperatorApprovals:
+        if !OperatorApprovals[account]?:
+            return isApproved false
+        return isApproved OperatorApprovals[account][operator]
+
+func persistent _transfer(from Address, to Address, id U256, amount U256):
+    observe BalanceOf <- MT.BalanceOf:
+        if to == Address(0):
+            throw "Transfer to the zero address"
+        if !BalanceOf[from]?:
+            throw "Insufficient balance for transfer"
+        if !BalanceOf[from][id]?:
+            throw "Insufficient balance for transfer"
+        if BalanceOf[from][id] < amount:
+            throw "Insufficient balance for transfer"
+    mutate BalanceOf <- MT.BalanceOf:
+        BalanceOf[from][id] -= amount
+        if !BalanceOf[to]?:
+            disperse BalanceOf[to] <- make(Map[U256]U256)
+        if !BalanceOf[to][id]?:
+            BalanceOf[to][id] = 0
+        BalanceOf[to][id] += amount
+
+endpoint invoke persistent safeTransferFrom(from Address, to Address, id U256, amount U256, data []Bytes):
+    memory isApproved = _isApprovedForAll(account: from, operator: Address(Sender))
+    if from != Address(Sender) && !isApproved:
+        throw "Caller is not owner nor approved"
+
+    _transfer(from, to, id, amount)
+    emit TransferSingle(Address(Sender), from, to, id, amount)
+    // TODO: Implement additional safety checks for recipient if required
+
+endpoint invoke persistent safeBatchTransferFrom(from Address, to Address, ids []U256, amounts []U256, data []Bytes):
+    memory isApproved = _isApprovedForAll(account: from, operator: Address(Sender))
+    if from != Address(Sender) && !isApproved:
+        throw "Caller is not owner nor approved"
+    if len(ids) != len(amounts):
+        throw "IDs and amounts length mismatch"
+    for i in range(0, len(ids)):
+        _transfer(from, to, id: ids[i], amount: amounts[i])
+    emit TransferBatch(Address(Sender), from, to)
+    // TODO: Implement additional safety checks for recipient if required
+
+endpoint invoke persistent mint(to Address, tokenId U256, amount U256, tokenURI String):
+    observe Tokens <- MT.Tokens:
+        if !Tokens[tokenId]?:
+            disperse Tokens[tokenId] <- TokenMetadata{tokenId: tokenId, tokenURI: tokenURI, supply: 0}
+    if to == Address(0):
+        throw "Mint to the empty address"
+    mutate Tokens, BalanceOf, TotalSupply <- MT.Tokens, MT.BalanceOf, MT.TotalSupply:
+        Tokens[tokenId].supply += amount
+        if !BalanceOf[to]?:
+            disperse BalanceOf[to] <- make(Map[U256]U256)
+        if !BalanceOf[to][tokenId]?:
+            BalanceOf[to][tokenId] = 0
+        BalanceOf[to][tokenId] += amount
+        TotalSupply += amount
+    emit TransferSingle(Address(Sender), Address(0), to, tokenId, amount)
+
+endpoint invoke readonly tokenURI(tokenId U256) -> (URI String):
+    observe Tokens <- MT.Tokens:
+        if !Tokens[tokenId]?:
+            throw "Token does not exist"
+        return URI Tokens[tokenId].tokenURI
+
+endpoint invoke readonly name() -> (Name String):
+    observe ContractName <- MT.ContractName:
+        return Name ContractName
+
+endpoint invoke readonly symbol() -> (Symbol String):
+    observe ContractSymbol <- MT.ContractSymbol:
+        return Symbol ContractSymbol
+
+// ERC-1155 optional enumeration extension (not fully implemented)
+endpoint invoke readonly totalSupply() -> (Total U256):
+    observe TotalSupply <- MT.TotalSupply:
+        return Total TotalSupply
+
+// must implement ERC1155TokenReceiver(onERC1155Received(), onERC1155BatchReceived()) on wallet/broker/auction application

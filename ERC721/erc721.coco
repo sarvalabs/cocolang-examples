@@ -1,0 +1,219 @@
+coco NFT
+
+class TokenMetadata:
+    field tokenId U256
+    field owner Address
+    field tokenURI String
+
+state persistent:
+    // token ID -> metadata
+    Tokens Map[U256]TokenMetadata
+    // owner -> token count
+    BalanceOf Map[Address]U256
+    // token ID -> approved addr
+    TokenApprovals Map[U256]Address
+    // owner -> operator -> approval
+    OperatorApprovals Map[Address]Map[Address]Bool
+    // total tokens minted
+    TotalSupply U256
+    ContractName String
+    ContractSymbol String
+
+event Transfer:
+    topic from Address
+    topic to Address
+    topic tokenId U256
+
+event Approval:
+    topic owner Address
+    topic approved Address
+    topic tokenId U256
+
+event ApprovalForAll:
+    topic owner Address
+    topic operator Address
+    topic approved Bool
+
+endpoint deploy Init(name String, symbol String):
+    mutate ContractName, ContractSymbol, Tokens, BalanceOf, TokenApprovals, OperatorApprovals, TotalSupply <- NFT.ContractName, NFT.ContractSymbol, NFT.Tokens, NFT.BalanceOf, NFT.TokenApprovals, NFT.OperatorApprovals, NFT.TotalSupply:
+        ContractName = name
+        ContractSymbol = symbol
+        disperse Tokens <- make(Map[U256]TokenMetadata)
+        disperse BalanceOf <- make(Map[Address]U256)
+        disperse TokenApprovals <- make(Map[U256]Address)
+        disperse OperatorApprovals <- make(Map[Address]Map[Address]Bool)
+        TotalSupply = 0
+
+func readonly _exists(tokenId U256) -> (exists Bool):
+    observe Tokens <- NFT.Tokens:
+        return exists Tokens[tokenId]?
+
+func readonly _isApprovedOrOwner(spender Address, tokenId U256) -> (isApproved Bool):
+    observe Tokens, TokenApprovals, OperatorApprovals <- NFT.Tokens, NFT.TokenApprovals, NFT.OperatorApprovals:
+        if !Tokens[tokenId]?:
+            return isApproved false
+        memory owner = Tokens[tokenId].owner
+        memory approved = TokenApprovals[tokenId]
+        memory isAll = OperatorApprovals[owner][spender]
+        return isApproved (spender == owner || isAll || approved == spender)
+
+endpoint invoke readonly balanceOf(owner Address) -> (Balance U256):
+    observe BalanceOf <- NFT.BalanceOf:
+        return Balance BalanceOf[owner]
+
+endpoint invoke readonly ownerOf(tokenId U256) -> (Owner Address):
+    observe Tokens <- NFT.Tokens:
+        if !Tokens[tokenId]?:
+            throw "Token does not exist"
+        return Owner Tokens[tokenId].owner
+
+endpoint invoke persistent approve(to Address, tokenId U256):
+    memory owner
+    observe Tokens, OperatorApprovals <- NFT.Tokens, NFT.OperatorApprovals:
+        if !Tokens[tokenId]?:
+            throw "Token does not exist"
+        owner = Tokens[tokenId].owner
+        if to == owner:
+            throw "Approval to current owner"
+        memory isAll = OperatorApprovals[owner][Address(Sender)]
+        if Address(Sender) != owner && !isAll:
+            throw "Caller is not token owner or approved operator"
+    mutate TokenApprovals <- NFT.TokenApprovals:
+        TokenApprovals[tokenId] = to
+
+    emit Approval(owner, to, tokenId)
+
+endpoint invoke readonly getApproved(tokenId U256) -> (Approved Address, Exists Bool):
+    observe Tokens, TokenApprovals <- NFT.Tokens, NFT.TokenApprovals:
+        if !Tokens[tokenId]?:
+            return (Approved: Address(0), Exists: false)
+        return (Approved: TokenApprovals[tokenId], Exists: true)
+
+endpoint invoke persistent setApprovalForAll(operator Address, approved Bool):
+    if operator == Address(Sender):
+        throw "Approval to self"
+    mutate OperatorApprovals <- NFT.OperatorApprovals:
+        if !OperatorApprovals[Address(Sender)]?:
+            disperse OperatorApprovals[Address(Sender)] <- make(Map[Address]Bool)
+        OperatorApprovals[Address(Sender)][operator] = approved
+    emit ApprovalForAll(Address(Sender), operator, approved)
+
+endpoint invoke readonly isApprovedForAll(owner Address, operator Address) -> (IsApproved Bool):
+    observe OperatorApprovals <- NFT.OperatorApprovals:
+        if !OperatorApprovals[owner]?:
+            return IsApproved false
+        return IsApproved OperatorApprovals[owner][operator]
+
+endpoint invoke persistent transferFrom(from Address, to Address, tokenId U256):
+    observe Tokens, TokenApprovals, OperatorApprovals <- NFT.Tokens, NFT.TokenApprovals, NFT.OperatorApprovals:
+        if !Tokens[tokenId]?:
+            throw "Token does not exist"
+        memory owner = Tokens[tokenId].owner
+        if owner != from:
+            throw "From address is not the owner"
+        if to == Address(0):
+            throw "Transfer to the empty address"
+        memory approved = TokenApprovals[tokenId]
+        memory isAll = OperatorApprovals[owner][Address(Sender)]
+        if Address(Sender) != owner && !isAll && approved != Address(Sender):
+            throw "Caller is not token owner or approved"
+
+    mutate Tokens, BalanceOf, TokenApprovals <- NFT.Tokens, NFT.BalanceOf, NFT.TokenApprovals:
+        TokenApprovals[tokenId] = Address(0)
+        BalanceOf[from] -= 1
+        BalanceOf[to] += 1
+        Tokens[tokenId].owner = to
+
+    emit Transfer(from, to, tokenId)
+
+endpoint invoke persistent safeTransferFrom(from Address, to Address, tokenId U256):
+    observe Tokens, TokenApprovals, OperatorApprovals <- NFT.Tokens, NFT.TokenApprovals, NFT.OperatorApprovals:
+        if !Tokens[tokenId]?:
+            throw "Token does not exist"
+        memory owner = Tokens[tokenId].owner
+        if owner != from:
+            throw "From address is not the owner"
+        if to == Address(0):
+            throw "Transfer to the empty address"
+        memory approved = TokenApprovals[tokenId]
+        memory isAll = OperatorApprovals[owner][Address(Sender)]
+        if Address(Sender) != owner && !isAll && approved != Address(Sender):
+            throw "Caller is not token owner or approved"
+
+    mutate Tokens, BalanceOf, TokenApprovals <- NFT.Tokens, NFT.BalanceOf, NFT.TokenApprovals:
+        TokenApprovals[tokenId] = Address(0)
+        BalanceOf[from] -= 1
+        BalanceOf[to] += 1
+        Tokens[tokenId].owner = to
+
+    emit Transfer(from, to, tokenId)
+    // TODO: Implement additional safety checks if required
+
+endpoint invoke persistent mint(to Address, tokenId U256, tokenURI String):
+    observe Tokens <- NFT.Tokens:
+        if Tokens[tokenId]?:
+            throw "Token already minted"
+    if to == Address(0):
+        throw "Mint to the empty address"
+
+    mutate Tokens, BalanceOf, TotalSupply <- NFT.Tokens, NFT.BalanceOf, NFT.TotalSupply:
+        disperse Tokens[tokenId] <- TokenMetadata{tokenId: tokenId, owner: to, tokenURI: tokenURI}
+        BalanceOf[to] += 1
+        TotalSupply += 1
+
+    emit Transfer(Address(0), to, tokenId)
+
+endpoint invoke readonly tokenURI(tokenId U256) -> (URI String):
+    observe Tokens <- NFT.Tokens:
+        if !Tokens[tokenId]?:
+            throw "Token does not exist"
+        return URI Tokens[tokenId].tokenURI
+
+endpoint invoke readonly name() -> (Name String):
+    observe ContractName <- NFT.ContractName:
+        return Name ContractName
+
+endpoint invoke readonly symbol() -> (Symbol String):
+    observe ContractSymbol <- NFT.ContractSymbol:
+        return Symbol ContractSymbol
+
+
+
+// ERC-721 optional enumeration extension
+endpoint invoke readonly totalSupply() -> (Total U256):
+    observe TotalSupply <- NFT.TotalSupply:
+        return Total TotalSupply
+
+endpoint invoke readonly tokenByIndex(index U256) -> (TokenId U256):
+    observe Tokens, TotalSupply <- NFT.Tokens, NFT.TotalSupply:
+        if index >= TotalSupply:
+            throw "Index out of bounds"
+
+        if Tokens[index]?:
+            memory tokenMetaData
+            gather tokenMetaData <- Tokens[index]
+            return TokenId tokenMetaData.tokenId
+        else:
+            throw "Index not found" 
+
+endpoint invoke readonly tokenOfOwnerByIndex(owner Address, index U256) -> (TokenId U256):
+    observe Tokens, BalanceOf <- NFT.Tokens, NFT.BalanceOf:
+        if owner == Address(0):
+            throw "Invalid owner address"
+        if BalanceOf[owner]?:
+            memory balance = BalanceOf[owner]
+            if index >= balance:
+                throw "Index out of bounds"
+        else:
+            throw "Owner not found in BalanceOf map"
+
+        if Tokens[index]?:
+            memory tokenMetaData
+            gather tokenMetaData <- Tokens[index]
+            if tokenMetaData.owner == owner:
+                return TokenId tokenMetaData.tokenId
+        else:
+            throw "Index not found"
+        throw "Owner not found in Tokens map"
+
+// must implement ERC721TokenReceiver(onERC721Received()) on wallet/broker/auction application
