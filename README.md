@@ -2,7 +2,7 @@
 
 # Cocolang Examples
 
-This repository contains a collection of example modules and CocoLab docs for the
+This repository contains a collection of example modules for the
 [Coco Programming Language](https://www.cocolang.dev)
 
 Cocolang is a context-oriented high-level programming language for
