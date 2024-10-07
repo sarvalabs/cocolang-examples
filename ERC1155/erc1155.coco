@@ -1,3 +1,5 @@
+// Read the specifications for more details https://eips.ethereum.org/EIPS/eip-1155
+
 coco MT //Multi Tokens
       
 class TokenMetadata:
@@ -101,12 +103,12 @@ func persistent _transfer(from Address, to Address, id U256, amount U256):
         if BalanceOf[from][id] < amount:
             throw "Insufficient balance for transfer"
     mutate BalanceOf <- MT.BalanceOf:
-        BalanceOf[from][id] -= amount
+        generate BalanceOf[from][id] -= amount
         if !BalanceOf[to]?:
             disperse BalanceOf[to] <- make(Map[U256]U256)
         if !BalanceOf[to][id]?:
             BalanceOf[to][id] = 0
-        BalanceOf[to][id] += amount
+        generate BalanceOf[to][id] += amount
 
 endpoint invoke persistent safeTransferFrom(from Address, to Address, id U256, amount U256, data []Bytes):
     memory isApproved = _isApprovedForAll(account: from, operator: Address(Sender))
@@ -140,7 +142,7 @@ endpoint invoke persistent mint(to Address, tokenId U256, amount U256, tokenURI 
             disperse BalanceOf[to] <- make(Map[U256]U256)
         if !BalanceOf[to][tokenId]?:
             BalanceOf[to][tokenId] = 0
-        BalanceOf[to][tokenId] += amount
+        generate BalanceOf[to][tokenId] += amount
         TotalSupply += amount
     emit TransferSingle(Address(Sender), Address(0), to, tokenId, amount)
 

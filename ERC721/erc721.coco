@@ -1,3 +1,5 @@
+// Read the specifications for more details https://eips.ethereum.org/EIPS/eip-721 
+
 coco NFT
 
 class TokenMetadata:
@@ -59,6 +61,8 @@ func readonly _isApprovedOrOwner(spender Address, tokenId U256) -> (isApproved B
 
 endpoint invoke readonly balanceOf(owner Address) -> (Balance U256):
     observe BalanceOf <- NFT.BalanceOf:
+        if !BalanceOf[owner]?:
+            throw "Owner not found in BalanceOf map"
         return Balance BalanceOf[owner]
 
 endpoint invoke readonly ownerOf(tokenId U256) -> (Owner Address):
@@ -75,17 +79,21 @@ endpoint invoke persistent approve(to Address, tokenId U256):
         owner = Tokens[tokenId].owner
         if to == owner:
             throw "Approval to current owner"
-        memory isAll = OperatorApprovals[owner][Address(Sender)]
+        memory isAll
+        if !OperatorApprovals[owner][Address(Sender)]?:
+            throw "Token does not exist"
+        else:
+            isAll = OperatorApprovals[owner][Address(Sender)]
         if Address(Sender) != owner && !isAll:
             throw "Caller is not token owner or approved operator"
     mutate TokenApprovals <- NFT.TokenApprovals:
-        TokenApprovals[tokenId] = to
+        generate TokenApprovals[tokenId] = to
 
     emit Approval(owner, to, tokenId)
 
 endpoint invoke readonly getApproved(tokenId U256) -> (Approved Address, Exists Bool):
-    observe Tokens, TokenApprovals <- NFT.Tokens, NFT.TokenApprovals:
-        if !Tokens[tokenId]?:
+    observe TokenApprovals <- NFT.TokenApprovals:
+        if !TokenApprovals[tokenId]?:
             return (Approved: Address(0), Exists: false)
         return (Approved: TokenApprovals[tokenId], Exists: true)
 
@@ -95,7 +103,7 @@ endpoint invoke persistent setApprovalForAll(operator Address, approved Bool):
     mutate OperatorApprovals <- NFT.OperatorApprovals:
         if !OperatorApprovals[Address(Sender)]?:
             disperse OperatorApprovals[Address(Sender)] <- make(Map[Address]Bool)
-        OperatorApprovals[Address(Sender)][operator] = approved
+        generate OperatorApprovals[Address(Sender)][operator] = approved
     emit ApprovalForAll(Address(Sender), operator, approved)
 
 endpoint invoke readonly isApprovedForAll(owner Address, operator Address) -> (IsApproved Bool):
@@ -120,8 +128,8 @@ endpoint invoke persistent transferFrom(from Address, to Address, tokenId U256):
 
     mutate Tokens, BalanceOf, TokenApprovals <- NFT.Tokens, NFT.BalanceOf, NFT.TokenApprovals:
         TokenApprovals[tokenId] = Address(0)
-        BalanceOf[from] -= 1
-        BalanceOf[to] += 1
+        generate BalanceOf[from] -= 1
+        generate BalanceOf[to] += 1
         Tokens[tokenId].owner = to
 
     emit Transfer(from, to, tokenId)
@@ -142,8 +150,8 @@ endpoint invoke persistent safeTransferFrom(from Address, to Address, tokenId U2
 
     mutate Tokens, BalanceOf, TokenApprovals <- NFT.Tokens, NFT.BalanceOf, NFT.TokenApprovals:
         TokenApprovals[tokenId] = Address(0)
-        BalanceOf[from] -= 1
-        BalanceOf[to] += 1
+        generate BalanceOf[from] -= 1
+        generate BalanceOf[to] += 1
         Tokens[tokenId].owner = to
 
     emit Transfer(from, to, tokenId)
@@ -158,8 +166,8 @@ endpoint invoke persistent mint(to Address, tokenId U256, tokenURI String):
 
     mutate Tokens, BalanceOf, TotalSupply <- NFT.Tokens, NFT.BalanceOf, NFT.TotalSupply:
         disperse Tokens[tokenId] <- TokenMetadata{tokenId: tokenId, owner: to, tokenURI: tokenURI}
-        BalanceOf[to] += 1
-        TotalSupply += 1
+        generate BalanceOf[to] += 1
+        generate TotalSupply += 1
 
     emit Transfer(Address(0), to, tokenId)
 
