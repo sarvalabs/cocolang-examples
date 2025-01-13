@@ -2,7 +2,7 @@ syntax: 1
 engine:
   kind: PISA
   flags: []
-  version: 0.3.2
+  version: 0.4.0
 elements:
 - ptr: 0
   kind: state
@@ -13,13 +13,11 @@ elements:
       label: value
       type: bool
 - ptr: 1
-  deps:
-  - 0
   kind: routine
   data:
     name: Init
-    mode: persistent
-    kind: deploy
+    mode: static
+    kind: interact
     accepts: []
     returns: []
     executes:
@@ -28,12 +26,11 @@ elements:
 - ptr: 2
   deps:
   - 6
-  - 0
   kind: routine
   data:
     name: Seed
-    mode: persistent
-    kind: deploy
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: initial
@@ -45,7 +42,7 @@ elements:
       - OBTAIN $1 &0
       - SETFLD $0 &0 $1
       - LDPTR1 $1 0x6
-      - CALLR $0 $1 $0
+      - CALLC $0 $1 $0
     catches: []
 - ptr: 3
   deps:
@@ -53,8 +50,8 @@ elements:
   kind: routine
   data:
     name: Get
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts: []
     returns:
     - slot: 0
@@ -62,19 +59,18 @@ elements:
       type: bool
     executes:
       asm:
-      - PLOAD $0 &0
+      - LLOAD $0 &0
       - YIELD $0 &0
-      - PFREE $0
+      - DUMP $0
     catches: []
 - ptr: 4
   deps:
   - 6
-  - 0
   kind: routine
   data:
     name: Set
-    mode: persistent
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: setval
@@ -86,7 +82,7 @@ elements:
       - OBTAIN $1 &0
       - SETFLD $0 &0 $1
       - LDPTR1 $1 0x6
-      - CALLR $0 $1 $0
+      - CALLC $0 $1 $0
     catches: []
 - ptr: 5
   deps:
@@ -94,16 +90,17 @@ elements:
   kind: routine
   data:
     name: Toggle
-    mode: persistent
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts: []
     returns: []
     executes:
       asm:
-      - PLOAD $0 &0
+      - LLOAD $0 &0
       - GATHER $1 $0
-      - DISPERSE $0 $1
-      - PSAVE $0
+      - NOT $1 $1
+      - DISPER $0 $1
+      - STORE $0
     catches: []
 - ptr: 6
   deps:
@@ -111,8 +108,8 @@ elements:
   kind: routine
   data:
     name: set
-    mode: persistent
-    kind: internal
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: value
@@ -120,8 +117,8 @@ elements:
     returns: []
     executes:
       asm:
-      - PLOAD $0 &0
+      - LLOAD $0 &0
       - OBTAIN $1 &0
-      - DISPERSE $0 $1
-      - PSAVE $0
+      - DISPER $0 $1
+      - STORE $0
     catches: []
