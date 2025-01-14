@@ -5,21 +5,25 @@ coco Counter
 // The persistent state is used to define stateful
 // values managed intrinsically by the logic. Only 
 // a single call can access these values at a time.
-state persistent:
+// For PISA 0.3.2 target use state persistent
+state logic:
     value U64
 
 // Init() deploy is a constructor that initializes the persitent state
 // variables to their default values at the deploy time. 
-endpoint deploy persistent Init():
+// For PISA 0.3.2 target use endpoint deploy persistent Init()
+endpoint dynamic Init():
     pass
 
 // Get() is an invok that returns the 
 // current value for the logic state
-endpoint invoke readonly Get() -> (value U64):
+// For PISA 0.3.2 target use endpoint invoke readonly Get() -> (value U64)
+endpoint Get() -> (value U64):
     observe value <- Counter.value
 
 // Increase() is an invokable that 
 // increments U64 value in the logic state
-endpoint invoke persistent Increase ():
+// For PISA 0.3.2 target use endpoint invoke persistent Increase ()
+endpoint dynamic Increase ():
     mutate value <- Counter.value:
         value += 1

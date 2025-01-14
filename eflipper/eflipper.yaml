@@ -2,7 +2,7 @@ syntax: 1
 engine:
   kind: PISA
   flags: []
-  version: 0.3.2
+  version: 0.4.0
 elements:
 - ptr: 0
   kind: state
@@ -13,13 +13,11 @@ elements:
       label: value
       type: bool
 - ptr: 1
-  deps:
-  - 0
   kind: routine
   data:
     name: Init
-    mode: ephemeral
-    kind: enlist
+    mode: static
+    kind: interact
     accepts: []
     returns: []
     executes:
@@ -31,8 +29,8 @@ elements:
   kind: routine
   data:
     name: Get
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts: []
     returns:
     - slot: 0
@@ -40,20 +38,19 @@ elements:
       type: bool
     executes:
       asm:
-      - SENDER $0
-      - ELOAD $1 &0 $0
+      - ORIGIN $0
+      - ALOAD $1 $0 &0
       - YIELD $1 &0
-      - EFREE $1 $0
+      - DUMP $1
     catches: []
 - ptr: 3
   deps:
   - 5
-  - 0
   kind: routine
   data:
     name: Set
-    mode: ephemeral
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: value
@@ -65,7 +62,7 @@ elements:
       - OBTAIN $1 &0
       - SETFLD $0 &0 $1
       - LDPTR1 $1 0x5
-      - CALLR $0 $1 $0
+      - CALLC $0 $1 $0
     catches: []
 - ptr: 4
   deps:
@@ -73,18 +70,18 @@ elements:
   kind: routine
   data:
     name: Toggle
-    mode: ephemeral
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts: []
     returns: []
     executes:
       asm:
-      - SENDER $0
-      - ELOAD $1 &0 $0
+      - ORIGIN $0
+      - ALOAD $1 $0 &0
       - GATHER $2 $1
       - NOT $2 $2
-      - DISPERSE $1 $2
-      - ESAVE $1 $0
+      - DISPER $1 $2
+      - STORE $1
     catches: []
 - ptr: 5
   deps:
@@ -92,8 +89,8 @@ elements:
   kind: routine
   data:
     name: set
-    mode: ephemeral
-    kind: internal
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: value
@@ -101,9 +98,9 @@ elements:
     returns: []
     executes:
       asm:
-      - SENDER $0
-      - ELOAD $1 &0 $0
+      - ORIGIN $0
+      - ALOAD $1 $0 &0
       - OBTAIN $2 &0
-      - DISPERSE $1 $2
-      - ESAVE $1 $0
+      - DISPER $1 $2
+      - STORE $1
     catches: []

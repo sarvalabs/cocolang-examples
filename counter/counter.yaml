@@ -2,7 +2,7 @@ syntax: 1
 engine:
   kind: PISA
   flags: []
-  version: 0.3.2
+  version: 0.4.0
 elements:
 - ptr: 0
   kind: state
@@ -13,13 +13,11 @@ elements:
       label: value
       type: u64
 - ptr: 1
-  deps:
-  - 0
   kind: routine
   data:
     name: Init
-    mode: persistent
-    kind: deploy
+    mode: dynamic
+    kind: interact
     accepts: []
     returns: []
     executes:
@@ -31,8 +29,8 @@ elements:
   kind: routine
   data:
     name: Get
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts: []
     returns:
     - slot: 0
@@ -40,9 +38,9 @@ elements:
       type: u64
     executes:
       asm:
-      - PLOAD $0 &0
+      - LLOAD $0 &0
       - YIELD $0 &0
-      - PFREE $0
+      - DUMP $0
     catches: []
 - ptr: 3
   deps:
@@ -50,15 +48,15 @@ elements:
   kind: routine
   data:
     name: Increase
-    mode: persistent
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts: []
     returns: []
     executes:
       asm:
-      - PLOAD $0 &0
+      - LLOAD $0 &0
       - GATHER $1 $0
       - INCR $1
-      - DISPERSE $0 $1
-      - PSAVE $0
+      - DISPER $0 $1
+      - STORE $0
     catches: []
