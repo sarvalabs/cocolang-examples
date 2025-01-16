@@ -2,7 +2,7 @@ syntax: 1
 engine:
   kind: PISA
   flags: []
-  version: 0.3.2
+  version: 0.4.0
 elements:
 - ptr: 0
   kind: constant
@@ -51,7 +51,7 @@ elements:
     value: 0x06696e76616c6964206275726e20616d6f756e743a20696e73756666696369656e742062616c616e6365
 - ptr: 9
   kind: typedef
-  data: map[address]u256
+  data: map[identifier]u256
 - ptr: 10
   kind: event
   data:
@@ -60,10 +60,10 @@ elements:
     fields:
     - slot: 0
       label: sender
-      type: address
+      type: identifier
     - slot: 1
       label: receiver
-      type: address
+      type: identifier
     - slot: 2
       label: amount
       type: u256
@@ -80,7 +80,7 @@ elements:
       type: u256
     - slot: 2
       label: Balances
-      type: map[address]u256
+      type: map[identifier]u256
 - ptr: 12
   deps:
   - 0
@@ -90,8 +90,8 @@ elements:
   kind: routine
   data:
     name: Seed
-    mode: persistent
-    kind: deploy
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: symbol
@@ -102,38 +102,38 @@ elements:
     returns: []
     executes:
       asm:
-      - PLOAD $0 &0
+      - LLOAD $0 &0
       - OBTAIN $1 &0
-      - DISPERSE $0 $1
-      - PSAVE $0
-      - PLOAD $0 &1
+      - DISPER $0 $1
+      - STORE $0
+      - LLOAD $0 &1
       - OBTAIN $2 &1
-      - DISPERSE $0 $2
-      - PSAVE $0
-      - PLOAD $0 &2
-      - SENDER $3
-      - ADDR $3 $3
+      - DISPER $0 $2
+      - STORE $0
+      - LLOAD $0 &2
+      - ORIGIN $3
+      - ID $3 $3
       - SETKEY $0 $3 $2
-      - PSAVE $0
+      - STORE $0
       - LDPTR1 $0 0x0
-      - CONST $0 $0
-      - SENDER $3
-      - ADDR $3 $3
+      - LMAKE $0 $0
+      - ORIGIN $3
+      - ID $3 $3
       - STR $3 $3
       - JOIN $0 $0 $3
       - LDPTR1 $3 0x1
-      - CONST $3 $3
+      - LMAKE $3 $3
       - JOIN $0 $0 $3
       - STR $2 $2
       - JOIN $0 $0 $2
       - LDPTR1 $2 0x2
-      - CONST $2 $2
+      - LMAKE $2 $2
       - JOIN $0 $0 $2
       - JOIN $0 $0 $1
       - EVENT $0 $0
-      - LOCAL $1
-      - ADDR $1 $1
-      - EMIT $0 $1
+      - LOGIC $1
+      - ID $1 $1
+      - EMIT $1 $0
     catches: []
 - ptr: 13
   deps:
@@ -141,8 +141,8 @@ elements:
   kind: routine
   data:
     name: Decimals
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts: []
     returns:
     - slot: 0
@@ -151,7 +151,7 @@ elements:
     executes:
       asm:
       - LDPTR1 $0 0x3
-      - CONST $0 $0
+      - LMAKE $0 $0
       - YIELD $0 &0
     catches: []
 - ptr: 14
@@ -160,8 +160,8 @@ elements:
   kind: routine
   data:
     name: TotalSupply
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts: []
     returns:
     - slot: 0
@@ -169,9 +169,9 @@ elements:
       type: u256
     executes:
       asm:
-      - PLOAD $0 &1
+      - LLOAD $0 &1
       - YIELD $0 &0
-      - PFREE $0
+      - DUMP $0
     catches: []
 - ptr: 15
   deps:
@@ -179,19 +179,19 @@ elements:
   kind: routine
   data:
     name: BalanceOf
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts:
     - slot: 0
       label: addr
-      type: address
+      type: identifier
     returns:
     - slot: 0
       label: balance
       type: u256
     executes:
       asm:
-      - PLOAD $0 &2
+      - LLOAD $0 &2
       - OBTAIN $1 &0
       - HASKEY $2 $0 $1
       - NOT $2 $2
@@ -200,7 +200,7 @@ elements:
       - GETKEY $1 $0 $1
       - YIELD $1 &0
       - DEST
-      - PFREE $0
+      - DUMP $0
     catches: []
 - ptr: 16
   deps:
@@ -211,26 +211,26 @@ elements:
   kind: routine
   data:
     name: Transfer
-    mode: persistent
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: amount
       type: u256
     - slot: 1
       label: receiver
-      type: address
+      type: identifier
     returns: []
     executes:
       asm:
-      - SENDER $0
-      - ADDR $0 $0
-      - PLOAD $1 &2
+      - ORIGIN $0
+      - ID $0 $0
+      - LLOAD $1 &2
       - HASKEY $2 $1 $0
       - LDPTR1 $3 0x9
       - JUMPI $3 $2
       - LDPTR1 $2 0x4
-      - CONST $2 $2
+      - LMAKE $2 $2
       - THROW $2
       - DEST
       - GETKEY $2 $1 $0
@@ -240,22 +240,25 @@ elements:
       - LDPTR1 $5 0x13
       - JUMPI $5 $4
       - LDPTR1 $4 0x5
-      - CONST $4 $4
+      - LMAKE $4 $4
       - THROW $4
       - DEST
       - OBTAIN $4 &1
       - HASKEY $5 $1 $4
-      - LDPTR1 $6 0x1a
+      - LDPTR1 $6 0x1b
       - JUMPI $6 $5
       - PMAKE $5 &7
+      - GENKEY $6 $1 $4
       - SETKEY $1 $4 $5
       - DEST
       - SUB $2 $2 $3
+      - GENKEY $5 $1 $0
       - SETKEY $1 $0 $2
       - GETKEY $2 $1 $4
       - ADD $2 $2 $3
+      - GENKEY $3 $1 $4
       - SETKEY $1 $4 $2
-      - PSAVE $1
+      - STORE $1
       - CARGS $1
       - SETFLD $1 &0 $0
       - OBTAIN $0 &1
@@ -264,9 +267,9 @@ elements:
       - SETFLD $1 &2 $0
       - LDPTR1 $0 0xa
       - EVMAKE $0 $0 $1
-      - LOCAL $1
-      - ADDR $1 $1
-      - EMIT $0 $1
+      - LOGIC $1
+      - ID $1 $1
+      - EMIT $1 $0
     catches: []
 - ptr: 17
   deps:
@@ -274,8 +277,8 @@ elements:
   kind: routine
   data:
     name: Mint
-    mode: persistent
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: amount
@@ -283,27 +286,29 @@ elements:
     returns: []
     executes:
       asm:
-      - PLOAD $0 &1
+      - LLOAD $0 &1
       - GATHER $1 $0
       - OBTAIN $2 &0
       - ADD $2 $1 $2
       - COPY $1 $2
-      - DISPERSE $0 $1
-      - PSAVE $0
-      - PLOAD $0 &2
-      - SENDER $1
-      - ADDR $1 $1
+      - DISPER $0 $1
+      - STORE $0
+      - LLOAD $0 &2
+      - ORIGIN $1
+      - ID $1 $1
       - HASKEY $2 $0 $1
-      - LDPTR1 $3 0xf
+      - LDPTR1 $3 0x10
       - JUMPI $3 $2
       - PMAKE $2 &7
+      - GENKEY $3 $0 $1
       - SETKEY $0 $1 $2
       - DEST
       - GETKEY $2 $0 $1
       - OBTAIN $3 &0
       - ADD $2 $2 $3
+      - GENKEY $3 $0 $1
       - SETKEY $0 $1 $2
-      - PSAVE $0
+      - STORE $0
     catches: []
 - ptr: 18
   deps:
@@ -314,8 +319,8 @@ elements:
   kind: routine
   data:
     name: Burn
-    mode: persistent
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: amount
@@ -323,7 +328,7 @@ elements:
     returns: []
     executes:
       asm:
-      - PLOAD $0 &1
+      - LLOAD $0 &1
       - GATHER $1 $0
       - OBTAIN $2 &0
       - LT $3 $1 $2
@@ -331,21 +336,21 @@ elements:
       - LDPTR1 $4 0xa
       - JUMPI $4 $3
       - LDPTR1 $3 0x6
-      - CONST $3 $3
+      - LMAKE $3 $3
       - THROW $3
       - DEST
       - SUB $2 $1 $2
       - COPY $1 $2
-      - DISPERSE $0 $1
-      - PSAVE $0
-      - PLOAD $0 &2
-      - SENDER $1
-      - ADDR $1 $1
+      - DISPER $0 $1
+      - STORE $0
+      - LLOAD $0 &2
+      - ORIGIN $1
+      - ID $1 $1
       - HASKEY $2 $0 $1
       - LDPTR1 $3 0x18
       - JUMPI $3 $2
       - LDPTR1 $2 0x7
-      - CONST $2 $2
+      - LMAKE $2 $2
       - THROW $2
       - DEST
       - GETKEY $2 $0 $1
@@ -355,11 +360,12 @@ elements:
       - LDPTR1 $4 0x22
       - JUMPI $4 $2
       - LDPTR1 $2 0x8
-      - CONST $2 $2
+      - LMAKE $2 $2
       - THROW $2
       - DEST
       - GETKEY $2 $0 $1
       - SUB $2 $2 $3
+      - GENKEY $3 $0 $1
       - SETKEY $0 $1 $2
-      - PSAVE $0
+      - STORE $0
     catches: []

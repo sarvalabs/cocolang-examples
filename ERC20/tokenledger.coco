@@ -6,36 +6,41 @@ coco TokenLedger
 // The persistent state is used to define stateful
 // values managed intrinsically by the logic. Only 
 // a single call can access these values at a time.
-state persistent:
+// For PISA 0.3.2 target use state logic
+state logic:
     Symbol String
     Supply U256
-    Balances Map[Address]U256
+    Balances Map[Identifier]U256
 
 
 // Seed() deployer is constructor that sets
 // given initial value for the logic state.
-endpoint deploy Seed(symbol String, supply U256): 
+// For PISA 0.3.2 target use endpoint deploy Seed(symbol String, supply U256):
+endpoint dynamic Seed(symbol String, supply U256): 
     mutate symbol -> TokenLedger.Symbol
     mutate supply -> TokenLedger.Supply
 
     mutate balances <- TokenLedger.Balances:
-        balances[Address(Sender)] = supply
+        balances[Identifier(Sender)] = supply
 
-    emit f"seeded {Address(Sender)} with {supply} {symbol}"
+    emit f"seeded {Identifier(Sender)} with {supply} {symbol}"
 
 // Decimals() is an invokable that returns the 
 // U64 value '2' to the output slot
-endpoint invoke Decimals() -> (decimals U64):
+// For PISA 0.3.2 target use endpoint invoke Decimals() -> (decimals U64)
+endpoint Decimals() -> (decimals U64):
     yield decimals 18
 
 // TotalSupply() is an invokable that returns the 
 // supply U64 value stored in the logic state
-endpoint invoke TotalSupply() -> (supply U256):
+// For PISA 0.3.2 target use endpoint invoke TotalSupply() -> (supply U256)
+endpoint TotalSupply() -> (supply U256):
     observe supply <- TokenLedger.Supply
 
 // BalanceOf() is an invokable that returns the 
 // balance of the given address in the logic state
-endpoint invoke BalanceOf(addr Address) -> (balance U256):
+// For PISA 0.3.2 target use endpoint invoke BalanceOf(addr Address) -> (balance U256)
+endpoint BalanceOf(addr Identifier) -> (balance U256):
     observe balances <- TokenLedger.Balances:
         // If balance exists for address, read and return
         // balance = 0, if no entry for the address
@@ -43,15 +48,16 @@ endpoint invoke BalanceOf(addr Address) -> (balance U256):
             balance = balances[addr]
 
 event Transfer:
-    topic sender Address
-    topic receiver Address
+    topic sender Identifier
+    topic receiver Identifier
     field amount U256
 
 // Transfer() is a stateful invokable that 
 // moves the given amount from the sender's 
 // wallet to the receiver's given address
-endpoint invoke persistent Transfer(amount U256, receiver Address):
-    memory sender = Address(Sender)
+// For PISA 0.3.2 target use endpoint invoke persistent Transfer(amount U256, receiver Address)
+endpoint dynamic Transfer(amount U256, receiver Identifier):
+    memory sender = Identifier(Sender)
 
     mutate balances <- TokenLedger.Balances:
         if !balances[sender]?: throw "sender has no balance"
@@ -70,12 +76,13 @@ endpoint invoke persistent Transfer(amount U256, receiver Address):
 // Mint() is a stateful invokable that  
 // adds the given amount to supply
 // and balance of sender's wallet
-endpoint invoke persistent Mint(amount U256):
+// For PISA 0.3.2 target use endpoint invoke persistent Mint(amount U256)
+endpoint dynamic Mint(amount U256):
     mutate supply <- TokenLedger.Supply:
         supply += amount
 
     mutate balances <- TokenLedger.Balances:
-        memory sender = Address(Sender)
+        memory sender = Identifier(Sender)
 
         if !balances[sender]?:
             balances[sender] = 0
@@ -85,13 +92,14 @@ endpoint invoke persistent Mint(amount U256):
 // Burn() is a stateful invokable that  
 // subtracts the given amount to supply
 // and balance of sender's wallet
-endpoint invoke persistent Burn(amount U256):
+// For PISA 0.3.2 target use endpoint invoke persistent Burn(amount U256)
+endpoint dynamic Burn(amount U256):
     mutate supply <- TokenLedger.Supply:
         if supply < amount: throw "invalid burn amount: exceeds supply"
         supply -= amount
 
     mutate balances <- TokenLedger.Balances:
-        memory sender = Address(Sender)
+        memory sender = Identifier(Sender)
 
         if !balances[sender]?: 
             throw "invalid burn amount: sender has no balance"
