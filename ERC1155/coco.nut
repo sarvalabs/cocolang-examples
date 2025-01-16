@@ -14,7 +14,7 @@ arch = "PISA"
 
 [target.moi]
 format = "YAML"
-output = "nft"
+output = "erc1155"
 
 [target.pisa]
 format = "ASM"
