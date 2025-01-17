@@ -14,11 +14,11 @@ arch = "PISA"
 
 [target.moi]
 format = "YAML"
-output = "nft"
+output = "erc1155"
 
 [target.pisa]
 format = "ASM"
-version = "0.3.2"
+version = "0.4.0"
 
 [lab.render]
 big_int_as_hex = true

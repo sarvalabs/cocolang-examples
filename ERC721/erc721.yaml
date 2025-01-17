@@ -2,7 +2,7 @@ syntax: 1
 engine:
   kind: PISA
   flags: []
-  version: 0.3.2
+  version: 0.4.0
 elements:
 - ptr: 0
   kind: constant
@@ -81,16 +81,16 @@ elements:
   data: map[u256]class.TokenMetadata
 - ptr: 15
   kind: typedef
-  data: map[address]u256
+  data: map[identifier]u256
 - ptr: 16
   kind: typedef
-  data: map[u256]address
+  data: map[u256]identifier
 - ptr: 17
   kind: typedef
-  data: map[address]map[address]bool
+  data: map[identifier]map[identifier]bool
 - ptr: 18
   kind: typedef
-  data: map[address]bool
+  data: map[identifier]bool
 - ptr: 19
   kind: class
   data:
@@ -101,7 +101,7 @@ elements:
       type: u256
     - slot: 1
       label: owner
-      type: address
+      type: identifier
     - slot: 2
       label: tokenURI
       type: string
@@ -114,10 +114,10 @@ elements:
     fields:
     - slot: 0
       label: from
-      type: address
+      type: identifier
     - slot: 1
       label: to
-      type: address
+      type: identifier
     - slot: 2
       label: tokenId
       type: u256
@@ -129,10 +129,10 @@ elements:
     fields:
     - slot: 0
       label: owner
-      type: address
+      type: identifier
     - slot: 1
       label: approved
-      type: address
+      type: identifier
     - slot: 2
       label: tokenId
       type: u256
@@ -144,10 +144,10 @@ elements:
     fields:
     - slot: 0
       label: owner
-      type: address
+      type: identifier
     - slot: 1
       label: operator
-      type: address
+      type: identifier
     - slot: 2
       label: approved
       type: bool
@@ -163,13 +163,13 @@ elements:
       type: map[u256]class.TokenMetadata
     - slot: 1
       label: BalanceOf
-      type: map[address]u256
+      type: map[identifier]u256
     - slot: 2
       label: TokenApprovals
-      type: map[u256]address
+      type: map[u256]identifier
     - slot: 3
       label: OperatorApprovals
-      type: map[address]map[address]bool
+      type: map[identifier]map[identifier]bool
     - slot: 4
       label: TotalSupply
       type: u256
@@ -189,8 +189,8 @@ elements:
   kind: routine
   data:
     name: Init
-    mode: persistent
-    kind: deploy
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: name
@@ -201,38 +201,38 @@ elements:
     returns: []
     executes:
       asm:
-      - PLOAD $0 &5
-      - PLOAD $2 &6
-      - PLOAD $4 &0
-      - PLOAD $5 &1
-      - PLOAD $6 &2
-      - PLOAD $7 &3
-      - PLOAD $8 &4
+      - LLOAD $0 &5
+      - LLOAD $2 &6
+      - LLOAD $4 &0
+      - LLOAD $5 &1
+      - LLOAD $6 &2
+      - LLOAD $7 &3
+      - LLOAD $8 &4
       - OBTAIN $1 &0
       - OBTAIN $3 &1
       - LDPTR1 $a 0xe
       - MAKE $a $a
-      - DISPERSE $4 $a
+      - DISPER $4 $a
       - LDPTR1 $a 0xf
       - MAKE $a $a
-      - DISPERSE $5 $a
+      - DISPER $5 $a
       - LDPTR1 $a 0x10
       - MAKE $a $a
-      - DISPERSE $6 $a
+      - DISPER $6 $a
       - LDPTR1 $a 0x11
       - MAKE $a $a
-      - DISPERSE $7 $a
+      - DISPER $7 $a
       - PMAKE $9 &7
-      - DISPERSE $0 $1
-      - PSAVE $0
-      - DISPERSE $2 $3
-      - PSAVE $2
-      - PSAVE $4
-      - PSAVE $5
-      - PSAVE $6
-      - PSAVE $7
-      - DISPERSE $8 $9
-      - PSAVE $8
+      - DISPER $0 $1
+      - STORE $0
+      - DISPER $2 $3
+      - STORE $2
+      - STORE $4
+      - STORE $5
+      - STORE $6
+      - STORE $7
+      - DISPER $8 $9
+      - STORE $8
     catches: []
 - ptr: 25
   deps:
@@ -240,8 +240,8 @@ elements:
   kind: routine
   data:
     name: _exists
-    mode: readonly
-    kind: internal
+    mode: static
+    kind: interact
     accepts:
     - slot: 0
       label: tokenId
@@ -252,14 +252,14 @@ elements:
       type: bool
     executes:
       asm:
-      - PLOAD $0 &0
+      - LLOAD $0 &0
       - OBTAIN $1 &0
       - HASKEY $1 $0 $1
       - YIELD $1 &0
       - YIELD $1 &0
-      - PFREE $0
+      - DUMP $0
       - TERM
-      - PFREE $0
+      - DUMP $0
     catches: []
 - ptr: 26
   deps:
@@ -267,12 +267,12 @@ elements:
   kind: routine
   data:
     name: _isApprovedOrOwner
-    mode: readonly
-    kind: internal
+    mode: static
+    kind: interact
     accepts:
     - slot: 0
       label: spender
-      type: address
+      type: identifier
     - slot: 1
       label: tokenId
       type: u256
@@ -282,9 +282,9 @@ elements:
       type: bool
     executes:
       asm:
-      - PLOAD $0 &0
-      - PLOAD $1 &2
-      - PLOAD $2 &3
+      - LLOAD $0 &0
+      - LLOAD $1 &2
+      - LLOAD $2 &3
       - OBTAIN $3 &1
       - HASKEY $4 $0 $3
       - LDPTR1 $5 0xe
@@ -292,9 +292,9 @@ elements:
       - PMAKE $4 &1
       - YIELD $4 &0
       - YIELD $4 &0
-      - PFREE $0
-      - PFREE $1
-      - PFREE $2
+      - DUMP $0
+      - DUMP $1
+      - DUMP $2
       - TERM
       - DEST
       - GETKEY $4 $0 $3
@@ -319,13 +319,13 @@ elements:
       - DEST
       - YIELD $7 &0
       - YIELD $7 &0
-      - PFREE $0
-      - PFREE $1
-      - PFREE $2
+      - DUMP $0
+      - DUMP $1
+      - DUMP $2
       - TERM
-      - PFREE $0
-      - PFREE $1
-      - PFREE $2
+      - DUMP $0
+      - DUMP $1
+      - DUMP $2
     catches: []
 - ptr: 27
   deps:
@@ -333,26 +333,26 @@ elements:
   kind: routine
   data:
     name: balanceOf
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts:
     - slot: 0
       label: owner
-      type: address
+      type: identifier
     returns:
     - slot: 0
       label: Balance
       type: u256
     executes:
       asm:
-      - PLOAD $0 &1
+      - LLOAD $0 &1
       - OBTAIN $1 &0
       - GETKEY $1 $0 $1
       - YIELD $1 &0
       - YIELD $1 &0
-      - PFREE $0
+      - DUMP $0
       - TERM
-      - PFREE $0
+      - DUMP $0
     catches: []
 - ptr: 28
   deps:
@@ -361,8 +361,8 @@ elements:
   kind: routine
   data:
     name: ownerOf
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts:
     - slot: 0
       label: tokenId
@@ -370,25 +370,25 @@ elements:
     returns:
     - slot: 0
       label: Owner
-      type: address
+      type: identifier
     executes:
       asm:
-      - PLOAD $0 &0
+      - LLOAD $0 &0
       - OBTAIN $1 &0
       - HASKEY $2 $0 $1
       - LDPTR1 $3 0x8
       - JUMPI $3 $2
       - LDPTR1 $2 0x0
-      - CONST $2 $2
+      - LMAKE $2 $2
       - THROW $2
       - DEST
       - GETKEY $1 $0 $1
       - GETFLD $1 $1 &1
       - YIELD $1 &0
       - YIELD $1 &0
-      - PFREE $0
+      - DUMP $0
       - TERM
-      - PFREE $0
+      - DUMP $0
     catches: []
 - ptr: 29
   deps:
@@ -400,26 +400,26 @@ elements:
   kind: routine
   data:
     name: approve
-    mode: persistent
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: to
-      type: address
+      type: identifier
     - slot: 1
       label: tokenId
       type: u256
     returns: []
     executes:
       asm:
-      - PLOAD $0 &0
-      - PLOAD $1 &3
+      - LLOAD $0 &0
+      - LLOAD $1 &3
       - OBTAIN $2 &1
       - HASKEY $3 $0 $2
       - LDPTR1 $4 0x9
       - JUMPI $4 $3
       - LDPTR1 $3 0x0
-      - CONST $3 $3
+      - LMAKE $3 $3
       - THROW $3
       - DEST
       - GETKEY $2 $0 $2
@@ -431,17 +431,17 @@ elements:
       - LDPTR1 $4 0x15
       - JUMPI $4 $3
       - LDPTR1 $3 0x1
-      - CONST $3 $3
+      - LMAKE $3 $3
       - THROW $3
       - DEST
       - GETKEY $3 $1 $2
-      - SENDER $4
-      - ADDR $4 $4
+      - ORIGIN $4
+      - ID $4 $4
       - GETKEY $3 $3 $4
       - PMAKE $4 &1
       - NOT $4 $4
-      - SENDER $5
-      - ADDR $5 $5
+      - ORIGIN $5
+      - ID $5 $5
       - EQ $5 $5 $2
       - NOT $5 $5
       - AND $4 $4 $5
@@ -455,16 +455,17 @@ elements:
       - LDPTR1 $4 0x2d
       - JUMPI $4 $3
       - LDPTR1 $3 0x2
-      - CONST $3 $3
+      - LMAKE $3 $3
       - THROW $3
       - DEST
-      - PFREE $0
-      - PFREE $1
-      - PLOAD $0 &2
+      - DUMP $0
+      - DUMP $1
+      - LLOAD $0 &2
       - OBTAIN $1 &0
       - OBTAIN $3 &1
+      - GENKEY $4 $0 $3
       - SETKEY $0 $3 $1
-      - PSAVE $0
+      - STORE $0
       - CARGS $0
       - SETFLD $0 &0 $2
       - OBTAIN $1 &0
@@ -473,9 +474,9 @@ elements:
       - SETFLD $0 &2 $1
       - LDPTR1 $1 0x15
       - EVMAKE $0 $1 $0
-      - LOCAL $1
-      - ADDR $1 $1
-      - EMIT $0 $1
+      - LOGIC $1
+      - ID $1 $1
+      - EMIT $1 $0
     catches: []
 - ptr: 30
   deps:
@@ -483,8 +484,8 @@ elements:
   kind: routine
   data:
     name: getApproved
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts:
     - slot: 0
       label: tokenId
@@ -492,14 +493,14 @@ elements:
     returns:
     - slot: 0
       label: Approved
-      type: address
+      type: identifier
     - slot: 1
       label: Exists
       type: bool
     executes:
       asm:
-      - PLOAD $0 &0
-      - PLOAD $1 &2
+      - LLOAD $0 &0
+      - LLOAD $1 &2
       - OBTAIN $2 &0
       - HASKEY $3 $0 $2
       - LDPTR1 $4 0xf
@@ -510,8 +511,8 @@ elements:
       - PMAKE $3 &1
       - YIELD $3 &1
       - YIELD $3 &1
-      - PFREE $0
-      - PFREE $1
+      - DUMP $0
+      - DUMP $1
       - TERM
       - DEST
       - GETKEY $2 $1 $2
@@ -521,11 +522,11 @@ elements:
       - NOT $2 $2
       - YIELD $2 &1
       - YIELD $2 &1
-      - PFREE $0
-      - PFREE $1
+      - DUMP $0
+      - DUMP $1
       - TERM
-      - PFREE $0
-      - PFREE $1
+      - DUMP $0
+      - DUMP $1
     catches: []
 - ptr: 31
   deps:
@@ -536,12 +537,12 @@ elements:
   kind: routine
   data:
     name: setApprovalForAll
-    mode: persistent
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: operator
-      type: address
+      type: identifier
     - slot: 1
       label: approved
       type: bool
@@ -549,49 +550,51 @@ elements:
     executes:
       asm:
       - OBTAIN $0 &0
-      - SENDER $1
-      - ADDR $1 $1
+      - ORIGIN $1
+      - ID $1 $1
       - EQ $1 $0 $1
       - NOT $1 $1
       - LDPTR1 $2 0xa
       - JUMPI $2 $1
       - LDPTR1 $1 0x3
-      - CONST $1 $1
+      - LMAKE $1 $1
       - THROW $1
       - DEST
-      - PLOAD $1 &3
-      - SENDER $2
-      - ADDR $2 $2
+      - LLOAD $1 &3
+      - ORIGIN $2
+      - ID $2 $2
       - HASKEY $2 $1 $2
-      - LDPTR1 $3 0x18
+      - LDPTR1 $3 0x19
       - JUMPI $3 $2
       - LDPTR1 $2 0x12
       - MAKE $2 $2
-      - SENDER $3
-      - ADDR $3 $3
+      - ORIGIN $3
+      - ID $3 $3
       - GENKEY $4 $1 $3
-      - DISPERSE $4 $2
+      - GENKEY $4 $1 $3
+      - DISPER $4 $2
       - SETKEY $1 $3 $4
       - DEST
       - OBTAIN $2 &1
-      - SENDER $3
-      - ADDR $3 $3
+      - ORIGIN $3
+      - ID $3 $3
       - GENKEY $4 $1 $3
+      - GENKEY $5 $4 $0
       - SETKEY $4 $0 $2
       - SETKEY $1 $3 $4
-      - PSAVE $1
+      - STORE $1
       - CARGS $1
-      - SENDER $2
-      - ADDR $2 $2
+      - ORIGIN $2
+      - ID $2 $2
       - SETFLD $1 &0 $2
       - SETFLD $1 &1 $0
       - OBTAIN $0 &1
       - SETFLD $1 &2 $0
       - LDPTR1 $0 0x16
       - EVMAKE $0 $0 $1
-      - LOCAL $1
-      - ADDR $1 $1
-      - EMIT $0 $1
+      - LOGIC $1
+      - ID $1 $1
+      - EMIT $1 $0
     catches: []
 - ptr: 32
   deps:
@@ -599,22 +602,22 @@ elements:
   kind: routine
   data:
     name: isApprovedForAll
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts:
     - slot: 0
       label: owner
-      type: address
+      type: identifier
     - slot: 1
       label: operator
-      type: address
+      type: identifier
     returns:
     - slot: 0
       label: IsApproved
       type: bool
     executes:
       asm:
-      - PLOAD $0 &3
+      - LLOAD $0 &3
       - OBTAIN $1 &0
       - HASKEY $2 $0 $1
       - LDPTR1 $3 0xa
@@ -622,7 +625,7 @@ elements:
       - PMAKE $2 &1
       - YIELD $2 &0
       - YIELD $2 &0
-      - PFREE $0
+      - DUMP $0
       - TERM
       - DEST
       - GETKEY $1 $0 $1
@@ -630,9 +633,9 @@ elements:
       - GETKEY $1 $1 $2
       - YIELD $1 &0
       - YIELD $1 &0
-      - PFREE $0
+      - DUMP $0
       - TERM
-      - PFREE $0
+      - DUMP $0
     catches: []
 - ptr: 33
   deps:
@@ -645,30 +648,30 @@ elements:
   kind: routine
   data:
     name: transferFrom
-    mode: persistent
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: from
-      type: address
+      type: identifier
     - slot: 1
       label: to
-      type: address
+      type: identifier
     - slot: 2
       label: tokenId
       type: u256
     returns: []
     executes:
       asm:
-      - PLOAD $0 &0
-      - PLOAD $1 &2
-      - PLOAD $2 &3
+      - LLOAD $0 &0
+      - LLOAD $1 &2
+      - LLOAD $2 &3
       - OBTAIN $3 &2
       - HASKEY $4 $0 $3
       - LDPTR1 $5 0xa
       - JUMPI $5 $4
       - LDPTR1 $4 0x0
-      - CONST $4 $4
+      - LMAKE $4 $4
       - THROW $4
       - DEST
       - GETKEY $4 $0 $3
@@ -679,7 +682,7 @@ elements:
       - LDPTR1 $6 0x15
       - JUMPI $6 $5
       - LDPTR1 $5 0x4
-      - CONST $5 $5
+      - LMAKE $5 $5
       - THROW $5
       - DEST
       - OBTAIN $5 &1
@@ -689,18 +692,18 @@ elements:
       - LDPTR1 $6 0x1f
       - JUMPI $6 $5
       - LDPTR1 $5 0x5
-      - CONST $5 $5
+      - LMAKE $5 $5
       - THROW $5
       - DEST
       - GETKEY $3 $1 $3
       - GETKEY $5 $2 $4
-      - SENDER $6
-      - ADDR $6 $6
+      - ORIGIN $6
+      - ID $6 $6
       - GETKEY $5 $5 $6
       - PMAKE $6 &1
       - NOT $6 $6
-      - SENDER $7
-      - ADDR $7 $7
+      - ORIGIN $7
+      - ID $7 $7
       - EQ $4 $7 $4
       - NOT $4 $4
       - AND $6 $6 $4
@@ -712,8 +715,8 @@ elements:
       - NOT $4 $6
       - LDPTR1 $7 0x39
       - JUMPI $7 $4
-      - SENDER $4
-      - ADDR $4 $4
+      - ORIGIN $4
+      - ID $4 $4
       - EQ $3 $3 $4
       - NOT $3 $3
       - AND $6 $6 $3
@@ -722,38 +725,41 @@ elements:
       - LDPTR1 $4 0x40
       - JUMPI $4 $3
       - LDPTR1 $3 0x6
-      - CONST $3 $3
+      - LMAKE $3 $3
       - THROW $3
       - DEST
-      - PFREE $0
-      - PFREE $1
-      - PFREE $2
-      - PLOAD $0 &0
-      - PLOAD $1 &1
-      - PLOAD $2 &2
+      - DUMP $0
+      - DUMP $1
+      - DUMP $2
+      - LLOAD $0 &0
+      - LLOAD $1 &1
+      - LLOAD $2 &2
       - PMAKE $3 &4
       - OBTAIN $4 &2
+      - GENKEY $5 $2 $4
       - SETKEY $2 $4 $3
       - OBTAIN $3 &0
       - GETKEY $5 $1 $3
       - PMAKE $6 &7
       - INCR $6
       - SUB $5 $5 $6
+      - GENKEY $6 $1 $3
       - SETKEY $1 $3 $5
       - OBTAIN $3 &1
       - GETKEY $5 $1 $3
       - PMAKE $6 &7
       - INCR $6
       - ADD $5 $5 $6
+      - GENKEY $6 $1 $3
       - SETKEY $1 $3 $5
       - GENKEY $5 $0 $4
       - GETFLD $6 $5 &1
-      - DISPERSE $6 $3
+      - DISPER $6 $3
       - SETFLD $5 &1 $6
       - SETKEY $0 $4 $5
-      - PSAVE $0
-      - PSAVE $1
-      - PSAVE $2
+      - STORE $0
+      - STORE $1
+      - STORE $2
       - CARGS $0
       - OBTAIN $1 &0
       - SETFLD $0 &0 $1
@@ -763,9 +769,9 @@ elements:
       - SETFLD $0 &2 $1
       - LDPTR1 $1 0x14
       - EVMAKE $0 $1 $0
-      - LOCAL $1
-      - ADDR $1 $1
-      - EMIT $0 $1
+      - LOGIC $1
+      - ID $1 $1
+      - EMIT $1 $0
     catches: []
 - ptr: 34
   deps:
@@ -778,30 +784,30 @@ elements:
   kind: routine
   data:
     name: safeTransferFrom
-    mode: persistent
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: from
-      type: address
+      type: identifier
     - slot: 1
       label: to
-      type: address
+      type: identifier
     - slot: 2
       label: tokenId
       type: u256
     returns: []
     executes:
       asm:
-      - PLOAD $0 &0
-      - PLOAD $1 &2
-      - PLOAD $2 &3
+      - LLOAD $0 &0
+      - LLOAD $1 &2
+      - LLOAD $2 &3
       - OBTAIN $3 &2
       - HASKEY $4 $0 $3
       - LDPTR1 $5 0xa
       - JUMPI $5 $4
       - LDPTR1 $4 0x0
-      - CONST $4 $4
+      - LMAKE $4 $4
       - THROW $4
       - DEST
       - GETKEY $4 $0 $3
@@ -812,7 +818,7 @@ elements:
       - LDPTR1 $6 0x15
       - JUMPI $6 $5
       - LDPTR1 $5 0x4
-      - CONST $5 $5
+      - LMAKE $5 $5
       - THROW $5
       - DEST
       - OBTAIN $5 &1
@@ -822,18 +828,18 @@ elements:
       - LDPTR1 $6 0x1f
       - JUMPI $6 $5
       - LDPTR1 $5 0x5
-      - CONST $5 $5
+      - LMAKE $5 $5
       - THROW $5
       - DEST
       - GETKEY $3 $1 $3
       - GETKEY $5 $2 $4
-      - SENDER $6
-      - ADDR $6 $6
+      - ORIGIN $6
+      - ID $6 $6
       - GETKEY $5 $5 $6
       - PMAKE $6 &1
       - NOT $6 $6
-      - SENDER $7
-      - ADDR $7 $7
+      - ORIGIN $7
+      - ID $7 $7
       - EQ $4 $7 $4
       - NOT $4 $4
       - AND $6 $6 $4
@@ -845,8 +851,8 @@ elements:
       - NOT $4 $6
       - LDPTR1 $7 0x39
       - JUMPI $7 $4
-      - SENDER $4
-      - ADDR $4 $4
+      - ORIGIN $4
+      - ID $4 $4
       - EQ $3 $3 $4
       - NOT $3 $3
       - AND $6 $6 $3
@@ -855,38 +861,41 @@ elements:
       - LDPTR1 $4 0x40
       - JUMPI $4 $3
       - LDPTR1 $3 0x6
-      - CONST $3 $3
+      - LMAKE $3 $3
       - THROW $3
       - DEST
-      - PFREE $0
-      - PFREE $1
-      - PFREE $2
-      - PLOAD $0 &0
-      - PLOAD $1 &1
-      - PLOAD $2 &2
+      - DUMP $0
+      - DUMP $1
+      - DUMP $2
+      - LLOAD $0 &0
+      - LLOAD $1 &1
+      - LLOAD $2 &2
       - PMAKE $3 &4
       - OBTAIN $4 &2
+      - GENKEY $5 $2 $4
       - SETKEY $2 $4 $3
       - OBTAIN $3 &0
       - GETKEY $5 $1 $3
       - PMAKE $6 &7
       - INCR $6
       - SUB $5 $5 $6
+      - GENKEY $6 $1 $3
       - SETKEY $1 $3 $5
       - OBTAIN $3 &1
       - GETKEY $5 $1 $3
       - PMAKE $6 &7
       - INCR $6
       - ADD $5 $5 $6
+      - GENKEY $6 $1 $3
       - SETKEY $1 $3 $5
       - GENKEY $5 $0 $4
       - GETFLD $6 $5 &1
-      - DISPERSE $6 $3
+      - DISPER $6 $3
       - SETFLD $5 &1 $6
       - SETKEY $0 $4 $5
-      - PSAVE $0
-      - PSAVE $1
-      - PSAVE $2
+      - STORE $0
+      - STORE $1
+      - STORE $2
       - CARGS $0
       - OBTAIN $1 &0
       - SETFLD $0 &0 $1
@@ -896,9 +905,9 @@ elements:
       - SETFLD $0 &2 $1
       - LDPTR1 $1 0x14
       - EVMAKE $0 $1 $0
-      - LOCAL $1
-      - ADDR $1 $1
-      - EMIT $0 $1
+      - LOGIC $1
+      - ID $1 $1
+      - EMIT $1 $0
     catches: []
 - ptr: 35
   deps:
@@ -910,12 +919,12 @@ elements:
   kind: routine
   data:
     name: mint
-    mode: persistent
-    kind: invoke
+    mode: dynamic
+    kind: interact
     accepts:
     - slot: 0
       label: to
-      type: address
+      type: identifier
     - slot: 1
       label: tokenId
       type: u256
@@ -925,17 +934,17 @@ elements:
     returns: []
     executes:
       asm:
-      - PLOAD $0 &0
+      - LLOAD $0 &0
       - OBTAIN $1 &1
       - HASKEY $1 $0 $1
       - NOT $1 $1
       - LDPTR1 $2 0x9
       - JUMPI $2 $1
       - LDPTR1 $1 0x7
-      - CONST $1 $1
+      - LMAKE $1 $1
       - THROW $1
       - DEST
-      - PFREE $0
+      - DUMP $0
       - OBTAIN $0 &0
       - PMAKE $1 &4
       - EQ $1 $0 $1
@@ -943,12 +952,12 @@ elements:
       - LDPTR1 $2 0x14
       - JUMPI $2 $1
       - LDPTR1 $1 0x8
-      - CONST $1 $1
+      - LMAKE $1 $1
       - THROW $1
       - DEST
-      - PLOAD $1 &0
-      - PLOAD $2 &1
-      - PLOAD $3 &4
+      - LLOAD $1 &0
+      - LLOAD $2 &1
+      - LLOAD $3 &4
       - GATHER $4 $3
       - LDPTR1 $5 0x13
       - MAKE $5 $5
@@ -958,18 +967,20 @@ elements:
       - OBTAIN $7 &2
       - SETFLD $5 &2 $7
       - GENKEY $7 $1 $6
-      - DISPERSE $7 $5
+      - GENKEY $7 $1 $6
+      - DISPER $7 $5
       - SETKEY $1 $6 $7
       - GETKEY $5 $2 $0
       - PMAKE $6 &7
       - INCR $6
       - ADD $5 $5 $6
+      - GENKEY $6 $2 $0
       - SETKEY $2 $0 $5
       - INCR $4
-      - PSAVE $1
-      - PSAVE $2
-      - DISPERSE $3 $4
-      - PSAVE $3
+      - STORE $1
+      - STORE $2
+      - DISPER $3 $4
+      - STORE $3
       - CARGS $1
       - PMAKE $2 &4
       - SETFLD $1 &0 $2
@@ -978,9 +989,9 @@ elements:
       - SETFLD $1 &2 $0
       - LDPTR1 $0 0x14
       - EVMAKE $0 $0 $1
-      - LOCAL $1
-      - ADDR $1 $1
-      - EMIT $0 $1
+      - LOGIC $1
+      - ID $1 $1
+      - EMIT $1 $0
     catches: []
 - ptr: 36
   deps:
@@ -989,8 +1000,8 @@ elements:
   kind: routine
   data:
     name: tokenURI
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts:
     - slot: 0
       label: tokenId
@@ -1001,22 +1012,22 @@ elements:
       type: string
     executes:
       asm:
-      - PLOAD $0 &0
+      - LLOAD $0 &0
       - OBTAIN $1 &0
       - HASKEY $2 $0 $1
       - LDPTR1 $3 0x8
       - JUMPI $3 $2
       - LDPTR1 $2 0x0
-      - CONST $2 $2
+      - LMAKE $2 $2
       - THROW $2
       - DEST
       - GETKEY $1 $0 $1
       - GETFLD $1 $1 &2
       - YIELD $1 &0
       - YIELD $1 &0
-      - PFREE $0
+      - DUMP $0
       - TERM
-      - PFREE $0
+      - DUMP $0
     catches: []
 - ptr: 37
   deps:
@@ -1024,8 +1035,8 @@ elements:
   kind: routine
   data:
     name: name
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts: []
     returns:
     - slot: 0
@@ -1033,13 +1044,13 @@ elements:
       type: string
     executes:
       asm:
-      - PLOAD $0 &5
+      - LLOAD $0 &5
       - GATHER $1 $0
       - YIELD $1 &0
       - YIELD $1 &0
-      - PFREE $0
+      - DUMP $0
       - TERM
-      - PFREE $0
+      - DUMP $0
     catches: []
 - ptr: 38
   deps:
@@ -1047,8 +1058,8 @@ elements:
   kind: routine
   data:
     name: symbol
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts: []
     returns:
     - slot: 0
@@ -1056,13 +1067,13 @@ elements:
       type: string
     executes:
       asm:
-      - PLOAD $0 &6
+      - LLOAD $0 &6
       - GATHER $1 $0
       - YIELD $1 &0
       - YIELD $1 &0
-      - PFREE $0
+      - DUMP $0
       - TERM
-      - PFREE $0
+      - DUMP $0
     catches: []
 - ptr: 39
   deps:
@@ -1070,8 +1081,8 @@ elements:
   kind: routine
   data:
     name: totalSupply
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts: []
     returns:
     - slot: 0
@@ -1079,13 +1090,13 @@ elements:
       type: u256
     executes:
       asm:
-      - PLOAD $0 &4
+      - LLOAD $0 &4
       - GATHER $1 $0
       - YIELD $1 &0
       - YIELD $1 &0
-      - PFREE $0
+      - DUMP $0
       - TERM
-      - PFREE $0
+      - DUMP $0
     catches: []
 - ptr: 40
   deps:
@@ -1095,8 +1106,8 @@ elements:
   kind: routine
   data:
     name: tokenByIndex
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts:
     - slot: 0
       label: index
@@ -1107,15 +1118,15 @@ elements:
       type: u256
     executes:
       asm:
-      - PLOAD $0 &0
-      - PLOAD $1 &4
+      - LLOAD $0 &0
+      - LLOAD $1 &4
       - GATHER $2 $1
       - OBTAIN $3 &0
       - LT $2 $3 $2
       - LDPTR1 $4 0xa
       - JUMPI $4 $2
       - LDPTR1 $2 0x9
-      - CONST $2 $2
+      - LMAKE $2 $2
       - THROW $2
       - DEST
       - HASKEY $2 $0 $3
@@ -1127,18 +1138,18 @@ elements:
       - GETFLD $2 $2 &0
       - YIELD $2 &0
       - YIELD $2 &0
-      - PFREE $0
-      - PFREE $1
+      - DUMP $0
+      - DUMP $1
       - TERM
       - LDPTR1 $4 0x1d
       - JUMP $4
       - DEST
       - LDPTR1 $2 0xa
-      - CONST $2 $2
+      - LMAKE $2 $2
       - THROW $2
       - DEST
-      - PFREE $0
-      - PFREE $1
+      - DUMP $0
+      - DUMP $1
     catches: []
 - ptr: 41
   deps:
@@ -1151,12 +1162,12 @@ elements:
   kind: routine
   data:
     name: tokenOfOwnerByIndex
-    mode: readonly
-    kind: invoke
+    mode: static
+    kind: interact
     accepts:
     - slot: 0
       label: owner
-      type: address
+      type: identifier
     - slot: 1
       label: index
       type: u256
@@ -1166,8 +1177,8 @@ elements:
       type: u256
     executes:
       asm:
-      - PLOAD $0 &0
-      - PLOAD $1 &1
+      - LLOAD $0 &0
+      - LLOAD $1 &1
       - OBTAIN $2 &0
       - PMAKE $3 &4
       - EQ $3 $2 $3
@@ -1175,7 +1186,7 @@ elements:
       - LDPTR1 $4 0xb
       - JUMPI $4 $3
       - LDPTR1 $3 0xb
-      - CONST $3 $3
+      - LMAKE $3 $3
       - THROW $3
       - DEST
       - HASKEY $3 $1 $2
@@ -1188,14 +1199,14 @@ elements:
       - LDPTR1 $5 0x18
       - JUMPI $5 $3
       - LDPTR1 $3 0x9
-      - CONST $3 $3
+      - LMAKE $3 $3
       - THROW $3
       - DEST
       - LDPTR1 $4 0x1f
       - JUMP $4
       - DEST
       - LDPTR1 $3 0xc
-      - CONST $3 $3
+      - LMAKE $3 $3
       - THROW $3
       - DEST
       - OBTAIN $3 &1
@@ -1213,20 +1224,20 @@ elements:
       - GETFLD $2 $3 &0
       - YIELD $2 &0
       - YIELD $2 &0
-      - PFREE $0
-      - PFREE $1
+      - DUMP $0
+      - DUMP $1
       - TERM
       - DEST
       - LDPTR1 $5 0x39
       - JUMP $5
       - DEST
       - LDPTR1 $2 0xa
-      - CONST $2 $2
+      - LMAKE $2 $2
       - THROW $2
       - DEST
       - LDPTR1 $2 0xd
-      - CONST $2 $2
+      - LMAKE $2 $2
       - THROW $2
-      - PFREE $0
-      - PFREE $1
+      - DUMP $0
+      - DUMP $1
     catches: []

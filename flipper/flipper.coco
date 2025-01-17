@@ -5,36 +5,43 @@ coco Flipper
 // The persistent state is used to define stateful
 // values managed intrinsically by the logic. Only 
 // a single call can access these values at a time.
-state persistent:
+// For PISA 0.3.2 target use state persistent
+state logic:
     value Bool
 
 // Init() deploy is a constructor that initializes the persitent state
 // variables to their default values at the deploy time. 
-endpoint deploy persistent Init():
+// For PISA 0.3.2 target use endpoint deploy persistent Init()
+endpoint Init():
     pass
 
 // Seed() deployer is an alternate constructor
 // that sets given initial value for the logic state.
-endpoint deploy persistent Seed(initial Bool):
+// For PISA 0.3.2 target use endpoint deploy persistent Seed(initial Bool)
+endpoint dynamic Seed(initial Bool):
     set(value: initial)
 
 // Get() is an invoke that returns 
 // the current value of the logic state
-endpoint invoke readonly Get() -> (value Bool):
+// For PISA 0.3.2 target use endpoint invoke readonly Get() -> (value Bool)
+endpoint Get() -> (value Bool):
     observe value <- Flipper.value
 
 // Set() is an invoke that sets 
 // the given value to the logic state
-endpoint invoke persistent Set(setval Bool):
+// For PISA 0.3.2 target use endpoint invoke persistent Set(setval Bool)
+endpoint dynamic Set(setval Bool):
     set(value: setval)
 
 // Toggle() is an invoke that flips 
 // the current value of the logic state
-endpoint invoke persistent Toggle():
+// For PISA 0.3.2 target use endpoint invoke persistent Toggle()
+endpoint dynamic Toggle():
     mutate value <- Flipper.value:
-        value = value
+        value = !value
 
 // set() is a local function that 
 // sets given value to the logic state
-func persistent set(value Bool):
+// For PISA 0.3.2 target use func persistent set(value Bool)
+function dynamic set(value Bool):
     mutate value -> Flipper.value
