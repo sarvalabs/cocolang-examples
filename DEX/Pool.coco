@@ -1,0 +1,170 @@
+coco Pool
+//Uniswap V2 tyoe DEX
+state persistent:
+    //Pool data
+    token0 Address
+    token1 Address
+    token0Balance U64
+    token1Balance U64
+    totalLpSupply U64
+    lpTokenBalance Map[Address]U64
+
+endpoint deploy Init(tokenA Address, tokenB Address, initial0 U64, initial1 U64):
+    if tokenA == tokenB:
+        throw "Tokens must be different"
+    if initial0 == 0 || initial1 == 0:
+        throw "Initial balances must be greater than zero"
+
+   
+    mutate tokenA -> Pool.token0
+    mutate tokenB -> Pool.token1
+
+    //initial balances
+    mutate initial0 -> Pool.token0Balance
+    mutate initial1 -> Pool.token1Balance
+    
+    // compute & store LP supply (Need to add sqrt())
+    mutate (initial0 * initial1) -> Pool.totalLpSupply
+
+    // minting all LP tokens to the deployer
+    mutate bal <- Pool.lpTokenBalance:
+        bal[Address(Sender)] = initial0 * initial1
+
+
+endpoint invoke persistent Mint(amount0 U64, amount1 U64):
+    if amount0 <= 0 || amount1 <= 0:
+        throw "Amounts must be greater than zero"
+
+    memory r0 U64
+    memory r1 U64
+    memory total U64
+
+    observe tmp0 <- Pool.token0Balance:
+        r0 = tmp0
+    observe tmp1 <- Pool.token1Balance:
+        r1 = tmp1
+    observe tmpTotal <- Pool.totalLpSupply:
+        total = tmpTotal
+
+    
+    memory liquidityFrom0 U64 = (amount0 * total) / r0
+    memory liquidityFrom1 U64 = (amount1 * total) / r1
+    memory liquidity U64 = liquidityFrom0
+    if liquidityFrom1 < liquidityFrom0:
+        liquidity = liquidityFrom1
+
+    mutate token0Bal <- Pool.token0Balance:
+        token0Bal += amount0
+
+    mutate token1Bal <- Pool.token1Balance:
+        token1Bal += amount1
+
+    mutate totalSupply <- Pool.totalLpSupply:
+        totalSupply += liquidity
+
+    mutate lpMap <- Pool.lpTokenBalance:
+        memory sender = Address(Sender)
+        if lpMap[sender]?:
+            lpMap[sender] += liquidity
+        else:
+            lpMap[sender] = liquidity
+
+
+
+
+
+
+endpoint invoke persistent Burn(liquidity U64):
+    if liquidity <= 0:
+        throw "Liquidity must be > 0"
+
+    memory sender = Address(Sender)
+
+    
+    memory r0 U64
+    observe temp0 <- Pool.token0Balance:
+        r0 = temp0
+
+    memory r1 U64
+    observe temp1 <- Pool.token1Balance:
+        r1 = temp1
+
+    memory total U64
+    observe tempTotal <- Pool.totalLpSupply:
+        total = tempTotal
+
+    memory amount0 U64 = (liquidity * r0) / total
+    memory amount1 U64 = (liquidity * r1) / total
+
+    mutate token0Bal <- Pool.token0Balance:
+        token0Bal -= amount0
+    mutate token1Bal <- Pool.token1Balance:
+        token1Bal -= amount1
+    mutate totalSupply <- Pool.totalLpSupply:
+        totalSupply -= liquidity
+    mutate lpMap <- Pool.lpTokenBalance:
+        if !lpMap[sender]?:
+            throw "No LP tokens to burn"
+        if lpMap[sender] < liquidity:
+            throw "Not enough LP tokens"
+        lpMap[sender] -= liquidity
+endpoint invoke persistent Swap(amountIn U64, tokenIn Address) -> (amountOut U64):
+    if amountIn <= 0:
+        throw "Amount must be greater than 0"
+
+    memory reserve0 U64
+    memory reserve1 U64
+    memory address0 Address
+    memory address1 Address
+
+    observe tmp0 <- Pool.token0Balance:
+        reserve0 = tmp0
+    observe tmp1 <- Pool.token1Balance:
+        reserve1 = tmp1
+    observe addr0 <- Pool.token0:
+        address0 = addr0
+    observe addr1 <- Pool.token1:
+        address1 = addr1
+    //DEX fees(3%)
+    memory amountInWithFee U64 = (amountIn * 997) / 1000
+
+    if tokenIn == address0:
+        memory newReserve0 U64 = reserve0 + amountInWithFee
+        memory newReserve1 U64 = (reserve0 * reserve1) / newReserve0
+        memory out U64 = reserve1 - newReserve1
+        if out == 0:
+            throw "Insufficient output"
+        amountOut = out
+        mutate (reserve0 + amountIn) -> Pool.token0Balance
+        mutate (reserve1 - out) -> Pool.token1Balance
+
+    else if tokenIn == address1:
+        memory newReserve1 U64 = reserve1 + amountInWithFee
+        memory newReserve0 U64 = (reserve0 * reserve1) / newReserve1
+        memory out U64 = reserve0 - newReserve0
+        if out == 0:
+            throw "Insufficient output"
+        amountOut = out
+        mutate (reserve1 + amountIn) -> Pool.token1Balance
+        mutate (reserve0 - out) -> Pool.token0Balance
+
+    else:
+        throw "Invalid input token"
+
+endpoint invoke GetLPBalance(addr Address) -> (lpBal U64):
+    observe balances <- Pool.lpTokenBalance:
+        if balances[addr]?:
+            lpBal = balances[addr]
+        else:
+            lpBal = 0
+endpoint invoke GetReserves() -> (r0 U64, r1 U64):
+    observe t0, t1 <- Pool.token0Balance, Pool.token1Balance:
+        r0 = t0
+        r1 = t1
+
+//register Alice
+//set designated.sender Alice
+//compile Pool from manifest("./pool.yaml")
+//deploy Pool.Init(tokenA: 0x0000000000000000000000000000000000000000000000000000000000000001, tokenB: 0x0000000000000000000000000000000000000000000000000000000000000002, initial0: 100, initial1: 100)
+//invoke Pool.Mint(amount0: 500, amount1: 500)
+//invoke Pool.GetLPBalance(addr: 0xac2b687242756b9abee4a0f78313902c161a8de1a28821ab5ed88c0e90da38fe)
