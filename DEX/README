@@ -1,0 +1,293 @@
+**Pool Contract README**
+
+---
+
+## Overview
+
+This document provides a detailed, line-by-line explanation of the `Pool` Cocolang contract, which implements a Uniswap V2–style automated market maker (AMM). The contract supports:
+
+* **Initializing** a new pool with two token placeholders and initial reserves.
+* **Minting** LP tokens when liquidity is added.
+* **Burning** LP tokens to remove liquidity.
+* **Swapping** between the two tokens with a 0.3% fee.
+* **Querying** LP balances and current reserves.
+
+All internal token balances and LP token supply are tracked in contract state variables, as real token transfers are not yet implemented.
+
+---
+
+## State Variables
+
+| Name             | Type              | Description                                                   |
+| ---------------- | ----------------- | ------------------------------------------------------------- |
+| `token0`         | `Address`         | Address placeholder for the first token in the pair.          |
+| `token1`         | `Address`         | Address placeholder for the second token in the pair.         |
+| `token0Balance`  | `U64`             | Internal ledger of how many units of `token0` the pool holds. |
+| `token1Balance`  | `U64`             | Internal ledger of how many units of `token1` the pool holds. |
+| `totalLpSupply`  | `U64`             | Total supply of LP tokens minted to all liquidity providers.  |
+| `lpTokenBalance` | `Map[Address]U64` | Mapping from provider address to their LP token balance.      |
+
+> **Note:** `lpToken` Address is declared in comments but not used, since token transfers are unimplemented.
+
+---
+
+## Endpoints
+
+### 1. `deploy Init(tokenA Address, tokenB Address, initial0 U64, initial1 U64)`
+
+#### Purpose
+
+Initializes the pool by setting token placeholders, recording initial reserves, computing initial LP supply, and minting LP tokens to the deployer.
+
+#### Parameters
+
+* `tokenA` (`Address`): Address of the first token placeholder.
+* `tokenB` (`Address`): Address of the second token placeholder.
+* `initial0` (`U64`): Initial deposit amount of `tokenA`.
+* `initial1` (`U64`): Initial deposit amount of `tokenB`.
+
+#### Logic Steps
+
+1. **Sanity checks**
+
+   * `if tokenA == tokenB`: throws "Tokens must be different".
+   * `if initial0 == 0 || initial1 == 0`: throws "Initial balances must be greater than zero".
+2. **Store token addresses**
+
+   * `mutate tokenA -> Pool.token0`
+   * `mutate tokenB -> Pool.token1`
+3. **Record initial reserves**
+
+   * `mutate initial0 -> Pool.token0Balance`
+   * `mutate initial1 -> Pool.token1Balance`
+4. **Compute initial LP supply**
+
+   * `mutate (initial0 * initial1) -> Pool.totalLpSupply`
+   * Uses `initial0 * initial1` as a simplistic proxy for √(initial0 \* initial1).
+5. **Mint LP tokens to deployer**
+
+   * Reads `Pool.lpTokenBalance` map into `bal`.
+   * Sets `bal[Address(Sender)] = initial0 * initial1`.
+
+#### State Changes
+
+* `Pool.token0` ← `tokenA`
+* `Pool.token1` ← `tokenB`
+* `Pool.token0Balance` ← `initial0`
+* `Pool.token1Balance` ← `initial1`
+* `Pool.totalLpSupply` ← `initial0 * initial1`
+* `Pool.lpTokenBalance[Sender]` ← `initial0 * initial1`
+
+---
+
+### 2. `invoke persistent Mint(amount0 U64, amount1 U64)`
+
+#### Purpose
+
+Allows a user to add liquidity by depositing `amount0` of `token0` and `amount1` of `token1`. Mints LP tokens proportional to the smaller side of their deposit.
+
+#### Parameters
+
+* `amount0` (`U64`): Amount of `token0` to add.
+* `amount1` (`U64`): Amount of `token1` to add.
+
+#### Logic Steps
+
+1. **Validation**
+
+   * `if amount0 <= 0 || amount1 <= 0`: throws "Amounts must be greater than zero".
+2. **Read current state**
+
+   * `r0 = Pool.token0Balance`
+   * `r1 = Pool.token1Balance`
+   * `total = Pool.totalLpSupply`
+3. **Compute potential liquidity**
+
+   * `liquidityFrom0 = (amount0 * total) / r0`
+   * `liquidityFrom1 = (amount1 * total) / r1`
+   * `liquidity = min(liquidityFrom0, liquidityFrom1)` ensures equal-value addition.
+4. **Update reserves**
+
+   * `Pool.token0Balance += amount0`
+   * `Pool.token1Balance += amount1`
+5. **Update LP supply and balances**
+
+   * `Pool.totalLpSupply += liquidity`
+   * `Pool.lpTokenBalance[Sender] += liquidity` (or sets it if none existed).
+
+#### State Changes
+
+* `Pool.token0Balance` increases by `amount0`.
+* `Pool.token1Balance` increases by `amount1`.
+* `Pool.totalLpSupply` increases by `liquidity`.
+* `Pool.lpTokenBalance[Sender]` increases by `liquidity`.
+
+---
+
+### 3. `invoke persistent Burn(liquidity U64)`
+
+#### Purpose
+
+Allows a user to remove liquidity by burning `liquidity` LP tokens, returning proportional amounts of each token.
+
+#### Parameters
+
+* `liquidity` (`U64`): Amount of LP tokens to burn.
+
+#### Logic Steps
+
+1. **Validation**
+
+   * `if liquidity <= 0`: throws "Liquidity must be > 0".
+2. **Read current state**
+
+   * `r0 = Pool.token0Balance`
+   * `r1 = Pool.token1Balance`
+   * `total = Pool.totalLpSupply`
+3. **Compute withdrawal amounts**
+
+   * `amount0 = (liquidity * r0) / total`
+   * `amount1 = (liquidity * r1) / total`
+4. **Update reserves**
+
+   * `Pool.token0Balance -= amount0`
+   * `Pool.token1Balance -= amount1`
+   * `Pool.totalLpSupply -= liquidity`
+5. **Update LP map**
+
+   * Checks `lpMap[Sender] >= liquidity`, else throws.
+   * `Pool.lpTokenBalance[Sender] -= liquidity`.
+
+#### State Changes
+
+* `Pool.token0Balance` decreases by `amount0`.
+* `Pool.token1Balance` decreases by `amount1`.
+* `Pool.totalLpSupply` decreases by `liquidity`.
+* `Pool.lpTokenBalance[Sender]` decreases by `liquidity`.
+
+---
+
+### 4. `invoke persistent Swap(amountIn U64, tokenIn Address) -> (amountOut U64)`
+
+#### Purpose
+
+Swaps `tokenIn` for the other token, applying a 0.3% fee (multiplied by 997/1000) and using the constant-product formula.
+
+#### Parameters
+
+* `amountIn` (`U64`): Amount of input token to swap.
+* `tokenIn` (`Address`): Address placeholder indicating which token is being swapped in.
+
+#### Logic Steps
+
+1. **Validation**
+
+   * `if amountIn <= 0`: throws "Amount must be greater than 0".
+2. **Read reserves & addresses**
+
+   * `reserve0 = Pool.token0Balance`
+   * `reserve1 = Pool.token1Balance`
+   * `address0 = Pool.token0`
+   * `address1 = Pool.token1`
+3. **Apply fee**
+
+   * `amountInWithFee = (amountIn * 997) / 1000`
+4. **Branch by input token**
+
+   * **If `tokenIn == address0`**:
+
+     1. `newReserve0 = reserve0 + amountInWithFee`
+     2. `newReserve1 = (reserve0 * reserve1) / newReserve0`
+     3. `out = reserve1 - newReserve1`
+     4. `if out == 0`: throws "Insufficient output".
+     5. `amountOut = out`
+     6. Update balances:
+
+        * `Pool.token0Balance = reserve0 + amountIn`
+        * `Pool.token1Balance = reserve1 - out`
+   * **Else if `tokenIn == address1`**: mirror logic swapping roles of reserves.
+   * **Else**: throws "Invalid input token".
+
+#### Returns
+
+* `amountOut` (`U64`): Amount of the other token sent to the caller.
+
+#### State Changes
+
+* Increases the input token’s balance by `amountIn`.
+* Decreases the output token’s balance by `amountOut`.
+* Net effect respects the constant-product invariant after fee.
+
+---
+
+### 5. `invoke GetLPBalance(addr Address) -> (lpBal U64)`
+
+#### Purpose
+
+Returns how many LP tokens a given address holds.
+
+#### Parameters
+
+* `addr` (`Address`): Address to query.
+
+#### Logic Steps
+
+* Checks `Pool.lpTokenBalance[addr]`.
+* Returns `lpBal = value` or `0` if none.
+
+---
+
+### 6. `invoke GetReserves() -> (r0 U64, r1 U64)`
+
+#### Purpose
+
+Returns the current token reserves held by the pool.
+
+#### Logic Steps
+
+* Reads `Pool.token0Balance` and `Pool.token1Balance`.
+* Returns them as `(r0, r1)`.
+
+---
+
+## Usage Example
+
+```shell
+# 1) Register and set the caller
+register Alice
+set designated.sender Alice
+
+# 2) Compile and deploy with 100 units each
+compile Pool from manifest("./pool.yaml")
+
+deploy Pool.Init(
+  tokenA: 0x...1,
+  tokenB: 0x...2,
+  initial0: 100,
+  initial1: 100
+)
+
+# 3) Add liquidity
+invoke Pool.Mint(
+  amount0: 500,
+  amount1: 500
+)
+
+# 4) Check LP balance
+invoke Pool.GetLPBalance(
+  addr: 0xAC2B...38FE
+)
+```
+
+---
+
+## TODOs & Future Work
+
+* **Asset Transfers:** Integrate actual token transfers (e.g., ERC-20) upon Mint, Burn, and Swap.
+* **Events:** Emit `LiquidityAdded`, `LiquidityRemoved`, and `SwapExecuted` events for off-chain indexing.
+* **√ Calculation:** Replace `initial0 * initial1` with a true square root formula for LP token math.
+* **Security:** Add reentrancy guards and safe math checks.
+
+---
+
+*End of README*
