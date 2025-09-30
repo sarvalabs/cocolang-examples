@@ -2,50 +2,51 @@ syntax: 1
 engine:
   kind: PISA
   flags: []
-  version: 0.4.0
+  version: 0.5.0
+kind: logic
 elements:
 - ptr: 0
-  kind: constant
+  kind: literal
   data:
     type: string
     value: '0x0673656564656420'
 - ptr: 1
-  kind: constant
+  kind: literal
   data:
     type: string
     value: '0x06207769746820'
 - ptr: 2
-  kind: constant
+  kind: literal
   data:
     type: string
     value: '0x0620'
 - ptr: 3
-  kind: constant
+  kind: literal
   data:
     type: u64
     value: '0x0312'
 - ptr: 4
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x0673656e64657220686173206e6f2062616c616e6365
 - ptr: 5
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x0673656e6465722068617320696e73756666696369656e742062616c616e6365
 - ptr: 6
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x06696e76616c6964206275726e20616d6f756e743a206578636565647320737570706c79
 - ptr: 7
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x06696e76616c6964206275726e20616d6f756e743a2073656e64657220686173206e6f2062616c616e6365
 - ptr: 8
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x06696e76616c6964206275726e20616d6f756e743a20696e73756666696369656e742062616c616e6365
@@ -70,7 +71,7 @@ elements:
 - ptr: 11
   kind: state
   data:
-    mode: persistent
+    mode: logic
     fields:
     - slot: 0
       label: Symbol
@@ -87,11 +88,11 @@ elements:
   - 1
   - 2
   - 11
-  kind: routine
+  kind: callable
   data:
     name: Seed
     mode: dynamic
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: symbol
@@ -112,13 +113,11 @@ elements:
       - STORE $0
       - LLOAD $0 &2
       - ORIGIN $3
-      - ID $3 $3
       - SETKEY $0 $3 $2
       - STORE $0
       - LDPTR1 $0 0x0
       - LMAKE $0 $0
       - ORIGIN $3
-      - ID $3 $3
       - STR $3 $3
       - JOIN $0 $0 $3
       - LDPTR1 $3 0x1
@@ -138,11 +137,11 @@ elements:
 - ptr: 13
   deps:
   - 3
-  kind: routine
+  kind: callable
   data:
     name: Decimals
     mode: static
-    kind: interact
+    kind: invoke
     accepts: []
     returns:
     - slot: 0
@@ -157,11 +156,11 @@ elements:
 - ptr: 14
   deps:
   - 11
-  kind: routine
+  kind: callable
   data:
     name: TotalSupply
     mode: static
-    kind: interact
+    kind: invoke
     accepts: []
     returns:
     - slot: 0
@@ -176,11 +175,11 @@ elements:
 - ptr: 15
   deps:
   - 11
-  kind: routine
+  kind: callable
   data:
     name: BalanceOf
     mode: static
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: addr
@@ -208,11 +207,11 @@ elements:
   - 5
   - 10
   - 11
-  kind: routine
+  kind: callable
   data:
     name: Transfer
     mode: dynamic
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: amount
@@ -224,10 +223,9 @@ elements:
     executes:
       asm:
       - ORIGIN $0
-      - ID $0 $0
       - LLOAD $1 &2
       - HASKEY $2 $1 $0
-      - LDPTR1 $3 0x9
+      - LDPTR1 $3 0x8
       - JUMPI $3 $2
       - LDPTR1 $2 0x4
       - LMAKE $2 $2
@@ -237,7 +235,7 @@ elements:
       - OBTAIN $3 &0
       - LT $4 $2 $3
       - NOT $4 $4
-      - LDPTR1 $5 0x13
+      - LDPTR1 $5 0x12
       - JUMPI $5 $4
       - LDPTR1 $4 0x5
       - LMAKE $4 $4
@@ -245,7 +243,7 @@ elements:
       - DEST
       - OBTAIN $4 &1
       - HASKEY $5 $1 $4
-      - LDPTR1 $6 0x1b
+      - LDPTR1 $6 0x1a
       - JUMPI $6 $5
       - PMAKE $5 &7
       - GENKEY $6 $1 $4
@@ -274,11 +272,11 @@ elements:
 - ptr: 17
   deps:
   - 11
-  kind: routine
+  kind: callable
   data:
     name: Mint
     mode: dynamic
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: amount
@@ -295,9 +293,8 @@ elements:
       - STORE $0
       - LLOAD $0 &2
       - ORIGIN $1
-      - ID $1 $1
       - HASKEY $2 $0 $1
-      - LDPTR1 $3 0x10
+      - LDPTR1 $3 0xf
       - JUMPI $3 $2
       - PMAKE $2 &7
       - GENKEY $3 $0 $1
@@ -316,11 +313,11 @@ elements:
   - 7
   - 8
   - 11
-  kind: routine
+  kind: callable
   data:
     name: Burn
     mode: dynamic
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: amount
@@ -345,9 +342,8 @@ elements:
       - STORE $0
       - LLOAD $0 &2
       - ORIGIN $1
-      - ID $1 $1
       - HASKEY $2 $0 $1
-      - LDPTR1 $3 0x18
+      - LDPTR1 $3 0x17
       - JUMPI $3 $2
       - LDPTR1 $2 0x7
       - LMAKE $2 $2
@@ -357,7 +353,7 @@ elements:
       - OBTAIN $3 &0
       - LT $2 $2 $3
       - NOT $2 $2
-      - LDPTR1 $4 0x22
+      - LDPTR1 $4 0x21
       - JUMPI $4 $2
       - LDPTR1 $2 0x8
       - LMAKE $2 $2

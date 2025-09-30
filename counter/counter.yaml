@@ -2,22 +2,23 @@ syntax: 1
 engine:
   kind: PISA
   flags: []
-  version: 0.4.0
+  version: 0.5.0
+kind: logic
 elements:
 - ptr: 0
   kind: state
   data:
-    mode: persistent
+    mode: logic
     fields:
     - slot: 0
       label: value
       type: u64
 - ptr: 1
-  kind: routine
+  kind: callable
   data:
     name: Init
     mode: dynamic
-    kind: interact
+    kind: invoke
     accepts: []
     returns: []
     executes:
@@ -26,11 +27,11 @@ elements:
 - ptr: 2
   deps:
   - 0
-  kind: routine
+  kind: callable
   data:
     name: Get
     mode: static
-    kind: interact
+    kind: invoke
     accepts: []
     returns:
     - slot: 0
@@ -45,11 +46,11 @@ elements:
 - ptr: 3
   deps:
   - 0
-  kind: routine
+  kind: callable
   data:
     name: Increase
     mode: dynamic
-    kind: interact
+    kind: invoke
     accepts: []
     returns: []
     executes:

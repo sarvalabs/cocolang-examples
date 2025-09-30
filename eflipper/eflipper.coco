@@ -19,7 +19,7 @@ endpoint Init():
 // the current value of the logic state
 // For PISA 0.3.2 target use endpoint invoke readonly Get() -> (value Bool)
 endpoint Get() -> (value Bool):
-    observe value <- Sender.Eflipper.value
+    observe value <- Eflipper.Sender.value
 
 // Set() is an invoke that sets 
 // the given value to the logic state
@@ -31,11 +31,11 @@ endpoint dynamic Set(value Bool):
 // the current value of the logic state
 // For PISA 0.3.2 target use endpoint invoke ephemeral Toggle()
 endpoint dynamic Toggle():
-    mutate value <- Sender.Eflipper.value:
+    mutate value <- Eflipper.Sender.value:
         value = !value
 
 // set() is a local function that 
 // sets given value to the logic state
 // For PISA 0.3.2 target use func ephemeral set(value Bool):
 function dynamic set(value Bool):
-    mutate value -> Sender.Eflipper.value
+    mutate value -> Eflipper.Sender.value

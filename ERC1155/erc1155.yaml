@@ -2,45 +2,46 @@ syntax: 1
 engine:
   kind: PISA
   flags: []
-  version: 0.4.0
+  version: 0.5.0
+kind: logic
 elements:
 - ptr: 0
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x064163636f756e747320616e6420494473206d7573742068617665207468652073616d65206c656e677468
 - ptr: 1
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x0653657474696e6720617070726f76616c2073746174757320666f722073656c66
 - ptr: 2
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x065472616e7366657220746f20746865207a65726f2061646472657373
 - ptr: 3
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x06496e73756666696369656e742062616c616e636520666f72207472616e73666572
 - ptr: 4
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x0643616c6c6572206973206e6f74206f776e6572206e6f7220617070726f766564
 - ptr: 5
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x0649447320616e6420616d6f756e7473206c656e677468206d69736d61746368
 - ptr: 6
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x064d696e7420746f2074686520656d7074792061646472657373
 - ptr: 7
-  kind: constant
+  kind: literal
   data:
     type: string
     value: 0x06546f6b656e20646f6573206e6f74206578697374
@@ -138,7 +139,7 @@ elements:
   - 15
   kind: state
   data:
-    mode: persistent
+    mode: logic
     fields:
     - slot: 0
       label: Tokens
@@ -164,11 +165,11 @@ elements:
   - 10
   - 11
   - 19
-  kind: routine
+  kind: callable
   data:
     name: Init
     mode: dynamic
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: name
@@ -210,11 +211,11 @@ elements:
 - ptr: 21
   deps:
   - 19
-  kind: routine
+  kind: callable
   data:
     name: _exists
     mode: static
-    kind: interact
+    kind: internal
     accepts:
     - slot: 0
       label: tokenId
@@ -237,11 +238,11 @@ elements:
 - ptr: 22
   deps:
   - 19
-  kind: routine
+  kind: callable
   data:
     name: _isApprovedForAll
     mode: static
-    kind: interact
+    kind: internal
     accepts:
     - slot: 0
       label: account
@@ -278,11 +279,11 @@ elements:
 - ptr: 23
   deps:
   - 19
-  kind: routine
+  kind: callable
   data:
     name: balanceOf
     mode: static
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: account
@@ -338,11 +339,11 @@ elements:
   - 8
   - 12
   - 19
-  kind: routine
+  kind: callable
   data:
     name: balanceOfBatch
     mode: static
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: accounts
@@ -435,11 +436,11 @@ elements:
   - 13
   - 18
   - 19
-  kind: routine
+  kind: callable
   data:
     name: setApprovalForAll
     mode: dynamic
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: operator
@@ -452,10 +453,9 @@ elements:
       asm:
       - OBTAIN $0 &0
       - ORIGIN $1
-      - ID $1 $1
       - EQ $1 $0 $1
       - NOT $1 $1
-      - LDPTR1 $2 0xa
+      - LDPTR1 $2 0x9
       - JUMPI $2 $1
       - LDPTR1 $1 0x1
       - LMAKE $1 $1
@@ -463,14 +463,12 @@ elements:
       - DEST
       - LLOAD $1 &2
       - ORIGIN $2
-      - ID $2 $2
       - HASKEY $2 $1 $2
-      - LDPTR1 $3 0x19
+      - LDPTR1 $3 0x16
       - JUMPI $3 $2
       - LDPTR1 $2 0xd
       - MAKE $2 $2
       - ORIGIN $3
-      - ID $3 $3
       - GENKEY $4 $1 $3
       - GENKEY $4 $1 $3
       - DISPER $4 $2
@@ -478,7 +476,6 @@ elements:
       - DEST
       - OBTAIN $2 &1
       - ORIGIN $3
-      - ID $3 $3
       - GENKEY $4 $1 $3
       - GENKEY $5 $4 $0
       - SETKEY $4 $0 $2
@@ -486,7 +483,6 @@ elements:
       - STORE $1
       - CARGS $1
       - ORIGIN $2
-      - ID $2 $2
       - SETFLD $1 &0 $2
       - SETFLD $1 &1 $0
       - OBTAIN $0 &1
@@ -500,11 +496,11 @@ elements:
 - ptr: 26
   deps:
   - 19
-  kind: routine
+  kind: callable
   data:
     name: isApprovedForAll
     mode: static
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: account
@@ -544,11 +540,11 @@ elements:
   - 3
   - 14
   - 19
-  kind: routine
+  kind: callable
   data:
     name: _transfer
     mode: dynamic
-    kind: interact
+    kind: internal
     accepts:
     - slot: 0
       label: from
@@ -652,11 +648,11 @@ elements:
   - 16
   - 22
   - 27
-  kind: routine
+  kind: callable
   data:
     name: safeTransferFrom
     mode: dynamic
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: from
@@ -680,7 +676,6 @@ elements:
       - OBTAIN $1 &0
       - SETFLD $0 &0 $1
       - ORIGIN $2
-      - ID $2 $2
       - SETFLD $0 &1 $2
       - LDPTR1 $2 0x16
       - CALLC $0 $2 $0
@@ -688,18 +683,17 @@ elements:
       - PMAKE $2 &1
       - NOT $2 $2
       - ORIGIN $3
-      - ID $3 $3
       - EQ $3 $1 $3
       - NOT $3 $3
       - AND $2 $2 $3
       - NOT $3 $2
-      - LDPTR1 $4 0x15
+      - LDPTR1 $4 0x13
       - JUMPI $4 $3
       - NOT $0 $0
       - AND $2 $2 $0
       - DEST
       - NOT $0 $2
-      - LDPTR1 $2 0x1c
+      - LDPTR1 $2 0x1a
       - JUMPI $2 $0
       - LDPTR1 $0 0x4
       - LMAKE $0 $0
@@ -717,7 +711,6 @@ elements:
       - CALLC $0 $5 $0
       - CARGS $0
       - ORIGIN $5
-      - ID $5 $5
       - SETFLD $0 &0 $5
       - SETFLD $0 &1 $1
       - SETFLD $0 &2 $2
@@ -737,11 +730,11 @@ elements:
   - 17
   - 22
   - 27
-  kind: routine
+  kind: callable
   data:
     name: safeBatchTransferFrom
     mode: dynamic
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: from
@@ -765,7 +758,6 @@ elements:
       - OBTAIN $1 &0
       - SETFLD $0 &0 $1
       - ORIGIN $2
-      - ID $2 $2
       - SETFLD $0 &1 $2
       - LDPTR1 $2 0x16
       - CALLC $0 $2 $0
@@ -773,18 +765,17 @@ elements:
       - PMAKE $2 &1
       - NOT $2 $2
       - ORIGIN $3
-      - ID $3 $3
       - EQ $3 $1 $3
       - NOT $3 $3
       - AND $2 $2 $3
       - NOT $3 $2
-      - LDPTR1 $4 0x15
+      - LDPTR1 $4 0x13
       - JUMPI $4 $3
       - NOT $3 $0
       - AND $2 $2 $3
       - DEST
       - NOT $2 $2
-      - LDPTR1 $3 0x1c
+      - LDPTR1 $3 0x1a
       - JUMPI $3 $2
       - LDPTR1 $2 0x4
       - LMAKE $2 $2
@@ -795,7 +786,7 @@ elements:
       - OBTAIN $4 &3
       - SIZE $5 $4
       - EQ $3 $3 $5
-      - LDPTR1 $5 0x27
+      - LDPTR1 $5 0x25
       - JUMPI $5 $3
       - LDPTR1 $3 0x5
       - LMAKE $3 $3
@@ -808,12 +799,12 @@ elements:
       - PMAKE $7 &5
       - DEST
       - EQ $8 $3 $7
-      - LDPTR1 $9 0x36
+      - LDPTR1 $9 0x34
       - JUMPI $9 $8
       - APPEND $5 $6
       - INCR $6
       - DECR $3
-      - LDPTR1 $9 0x2d
+      - LDPTR1 $9 0x2b
       - JUMP $9
       - DEST
       - PMAKE $3 &5
@@ -821,7 +812,7 @@ elements:
       - DEST
       - LT $7 $3 $6
       - NOT $7 $7
-      - LDPTR1 $8 0x4c
+      - LDPTR1 $8 0x4a
       - JUMPI $8 $7
       - CARGS $7
       - SETFLD $7 &0 $1
@@ -835,12 +826,11 @@ elements:
       - CALLC $7 $9 $7
       - DEST
       - INCR $3
-      - LDPTR1 $8 0x39
+      - LDPTR1 $8 0x37
       - JUMP $8
       - DEST
       - CARGS $0
       - ORIGIN $2
-      - ID $2 $2
       - SETFLD $0 &0 $2
       - SETFLD $0 &1 $1
       - OBTAIN $1 &1
@@ -858,11 +848,11 @@ elements:
   - 15
   - 16
   - 19
-  kind: routine
+  kind: callable
   data:
     name: mint
     mode: dynamic
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: to
@@ -954,7 +944,6 @@ elements:
       - STORE $3
       - CARGS $1
       - ORIGIN $2
-      - ID $2 $2
       - SETFLD $1 &0 $2
       - PMAKE $2 &4
       - SETFLD $1 &1 $2
@@ -973,11 +962,11 @@ elements:
   deps:
   - 7
   - 19
-  kind: routine
+  kind: callable
   data:
     name: tokenURI
     mode: static
-    kind: interact
+    kind: invoke
     accepts:
     - slot: 0
       label: tokenId
@@ -1008,11 +997,11 @@ elements:
 - ptr: 32
   deps:
   - 19
-  kind: routine
+  kind: callable
   data:
     name: name
     mode: static
-    kind: interact
+    kind: invoke
     accepts: []
     returns:
     - slot: 0
@@ -1031,11 +1020,11 @@ elements:
 - ptr: 33
   deps:
   - 19
-  kind: routine
+  kind: callable
   data:
     name: symbol
     mode: static
-    kind: interact
+    kind: invoke
     accepts: []
     returns:
     - slot: 0
@@ -1054,11 +1043,11 @@ elements:
 - ptr: 34
   deps:
   - 19
-  kind: routine
+  kind: callable
   data:
     name: totalSupply
     mode: static
-    kind: interact
+    kind: invoke
     accepts: []
     returns:
     - slot: 0

@@ -1,5 +1,5 @@
 [coco]
-version = "0.5.2"
+version = "0.7.0"
 
 [module]
 name = "NFT"
@@ -18,7 +18,7 @@ output = "erc721"
 
 [target.pisa]
 format = "ASM"
-version = "0.4.0"
+version = "0.5.0"
 
 [lab.render]
 big_int_as_hex = true

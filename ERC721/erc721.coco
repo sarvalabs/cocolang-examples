@@ -37,7 +37,7 @@ event ApprovalForAll:
 
 // For PISA 0.3.2 target use endpoint deploy Init(name String, symbol String)
 endpoint dynamic Init(name String, symbol String):
-    mutate ContractName, ContractSymbol, Tokens, BalanceOf, TokenApprovals, OperatorApprovals, TotalSupply <- NFT.ContractName, NFT.ContractSymbol, NFT.Tokens, NFT.BalanceOf, NFT.TokenApprovals, NFT.OperatorApprovals, NFT.TotalSupply:
+    mutate ContractName, ContractSymbol, Tokens, BalanceOf, TokenApprovals, OperatorApprovals, TotalSupply <- NFT.Logic.ContractName, NFT.Logic.ContractSymbol, NFT.Logic.Tokens, NFT.Logic.BalanceOf, NFT.Logic.TokenApprovals, NFT.Logic.OperatorApprovals, NFT.Logic.TotalSupply:
         ContractName = name
         ContractSymbol = symbol
         disperse Tokens <- make(Map[U256]TokenMetadata)
@@ -48,12 +48,12 @@ endpoint dynamic Init(name String, symbol String):
 
 // For PISA 0.3.2 target use func readonly _exists(tokenId U256) -> (exists Bool)
 function _exists(tokenId U256) -> (exists Bool):
-    observe Tokens <- NFT.Tokens:
+    observe Tokens <- NFT.Logic.Tokens:
         return exists Tokens[tokenId]?
 
 // For PISA 0.3.2 target use func readonly _isApprovedOrOwner(spender Identifier, tokenId U256) -> (isApproved Bool)
 function _isApprovedOrOwner(spender Identifier, tokenId U256) -> (isApproved Bool):
-    observe Tokens, TokenApprovals, OperatorApprovals <- NFT.Tokens, NFT.TokenApprovals, NFT.OperatorApprovals:
+    observe Tokens, TokenApprovals, OperatorApprovals <- NFT.Logic.Tokens, NFT.Logic.TokenApprovals, NFT.Logic.OperatorApprovals:
         if !Tokens[tokenId]?:
             return isApproved false
         memory owner = Tokens[tokenId].owner
@@ -63,12 +63,12 @@ function _isApprovedOrOwner(spender Identifier, tokenId U256) -> (isApproved Boo
 
 // For PISA 0.3.2 target use endpoint invoke readonly balanceOf(owner Identifier) -> (Balance U256):
 endpoint balanceOf(owner Identifier) -> (Balance U256):
-    observe BalanceOf <- NFT.BalanceOf:
+    observe BalanceOf <- NFT.Logic.BalanceOf:
         return Balance BalanceOf[owner]
 
 // For PISA 0.3.2 target use endpoint invoke readonly ownerOf(tokenId U256) -> (Owner Identifier):
 endpoint ownerOf(tokenId U256) -> (Owner Identifier):
-    observe Tokens <- NFT.Tokens:
+    observe Tokens <- NFT.Logic.Tokens:
         if !Tokens[tokenId]?:
             throw "Token does not exist"
         return Owner Tokens[tokenId].owner
@@ -76,7 +76,7 @@ endpoint ownerOf(tokenId U256) -> (Owner Identifier):
 // For PISA 0.3.2 target use endpoint invoke persistent approve(to Address, tokenId U256)
 endpoint dynamic approve(to Identifier, tokenId U256):
     memory owner
-    observe Tokens, OperatorApprovals <- NFT.Tokens, NFT.OperatorApprovals:
+    observe Tokens, OperatorApprovals <- NFT.Logic.Tokens, NFT.Logic.OperatorApprovals:
         if !Tokens[tokenId]?:
             throw "Token does not exist"
         owner = Tokens[tokenId].owner
@@ -85,14 +85,14 @@ endpoint dynamic approve(to Identifier, tokenId U256):
         memory isAll = OperatorApprovals[owner][Identifier(Sender)]
         if Identifier(Sender) != owner && !isAll:
             throw "Caller is not token owner or approved operator"
-    mutate TokenApprovals <- NFT.TokenApprovals:
+    mutate TokenApprovals <- NFT.Logic.TokenApprovals:
         TokenApprovals[tokenId] = to
 
     emit Approval(owner, to, tokenId)
 
 // For PISA 0.3.2 target use endpoint invoke readonly getApproved(tokenId U256) -> (Approved Address, Exists Bool):
 endpoint getApproved(tokenId U256) -> (Approved Identifier, Exists Bool):
-    observe Tokens, TokenApprovals <- NFT.Tokens, NFT.TokenApprovals:
+    observe Tokens, TokenApprovals <- NFT.Logic.Tokens, NFT.Logic.TokenApprovals:
         if !Tokens[tokenId]?:
             return (Approved: Identifier(0), Exists: false)
         return (Approved: TokenApprovals[tokenId], Exists: true)
@@ -101,7 +101,7 @@ endpoint getApproved(tokenId U256) -> (Approved Identifier, Exists Bool):
 endpoint dynamic setApprovalForAll(operator Identifier, approved Bool):
     if operator == Identifier(Sender):
         throw "Approval to self"
-    mutate OperatorApprovals <- NFT.OperatorApprovals:
+    mutate OperatorApprovals <- NFT.Logic.OperatorApprovals:
         if !OperatorApprovals[Identifier(Sender)]?:
             disperse OperatorApprovals[Identifier(Sender)] <- make(Map[Identifier]Bool)
         OperatorApprovals[Identifier(Sender)][operator] = approved
@@ -109,14 +109,14 @@ endpoint dynamic setApprovalForAll(operator Identifier, approved Bool):
 
 // For PISA 0.3.2 target use endpoint invoke readonly isApprovedForAll(owner Address, operator Address) -> (IsApproved Bool):
 endpoint isApprovedForAll(owner Identifier, operator Identifier) -> (IsApproved Bool):
-    observe OperatorApprovals <- NFT.OperatorApprovals:
+    observe OperatorApprovals <- NFT.Logic.OperatorApprovals:
         if !OperatorApprovals[owner]?:
             return IsApproved false
         return IsApproved OperatorApprovals[owner][operator]
 
 // For PISA 0.3.2 target use endpoint invoke persistent transferFrom(from Address, to Address, tokenId U256)
 endpoint dynamic transferFrom(from Identifier, to Identifier, tokenId U256):
-    observe Tokens, TokenApprovals, OperatorApprovals <- NFT.Tokens, NFT.TokenApprovals, NFT.OperatorApprovals:
+    observe Tokens, TokenApprovals, OperatorApprovals <- NFT.Logic.Tokens, NFT.Logic.TokenApprovals, NFT.Logic.OperatorApprovals:
         if !Tokens[tokenId]?:
             throw "Token does not exist"
         memory owner = Tokens[tokenId].owner
@@ -129,7 +129,7 @@ endpoint dynamic transferFrom(from Identifier, to Identifier, tokenId U256):
         if Identifier(Sender) != owner && !isAll && approved != Identifier(Sender):
             throw "Caller is not token owner or approved"
 
-    mutate Tokens, BalanceOf, TokenApprovals <- NFT.Tokens, NFT.BalanceOf, NFT.TokenApprovals:
+    mutate Tokens, BalanceOf, TokenApprovals <- NFT.Logic.Tokens, NFT.Logic.BalanceOf, NFT.Logic.TokenApprovals:
         TokenApprovals[tokenId] = Identifier(0)
         BalanceOf[from] -= 1
         BalanceOf[to] += 1
@@ -139,7 +139,7 @@ endpoint dynamic transferFrom(from Identifier, to Identifier, tokenId U256):
 
 // For PISA 0.3.2 target use endpoint invoke persistent safeTransferFrom(from Address, to Address, tokenId U256)
 endpoint dynamic safeTransferFrom(from Identifier, to Identifier, tokenId U256):
-    observe Tokens, TokenApprovals, OperatorApprovals <- NFT.Tokens, NFT.TokenApprovals, NFT.OperatorApprovals:
+    observe Tokens, TokenApprovals, OperatorApprovals <- NFT.Logic.Tokens, NFT.Logic.TokenApprovals, NFT.Logic.OperatorApprovals:
         if !Tokens[tokenId]?:
             throw "Token does not exist"
         memory owner = Tokens[tokenId].owner
@@ -152,7 +152,7 @@ endpoint dynamic safeTransferFrom(from Identifier, to Identifier, tokenId U256):
         if Identifier(Sender) != owner && !isAll && approved != Identifier(Sender):
             throw "Caller is not token owner or approved"
 
-    mutate Tokens, BalanceOf, TokenApprovals <- NFT.Tokens, NFT.BalanceOf, NFT.TokenApprovals:
+    mutate Tokens, BalanceOf, TokenApprovals <- NFT.Logic.Tokens, NFT.Logic.BalanceOf, NFT.Logic.TokenApprovals:
         TokenApprovals[tokenId] = Identifier(0)
         BalanceOf[from] -= 1
         BalanceOf[to] += 1
@@ -163,13 +163,13 @@ endpoint dynamic safeTransferFrom(from Identifier, to Identifier, tokenId U256):
 
 // For PISA 0.3.2 target use endpoint invoke persistent mint(to Address, tokenId U256, tokenURI String)
 endpoint dynamic mint(to Identifier, tokenId U256, tokenURI String):
-    observe Tokens <- NFT.Tokens:
+    observe Tokens <- NFT.Logic.Tokens:
         if Tokens[tokenId]?:
             throw "Token already minted"
     if to == Identifier(0):
         throw "Mint to the empty address"
 
-    mutate Tokens, BalanceOf, TotalSupply <- NFT.Tokens, NFT.BalanceOf, NFT.TotalSupply:
+    mutate Tokens, BalanceOf, TotalSupply <- NFT.Logic.Tokens, NFT.Logic.BalanceOf, NFT.Logic.TotalSupply:
         disperse Tokens[tokenId] <- TokenMetadata{tokenId: tokenId, owner: to, tokenURI: tokenURI}
         BalanceOf[to] += 1
         TotalSupply += 1
@@ -178,30 +178,30 @@ endpoint dynamic mint(to Identifier, tokenId U256, tokenURI String):
 
 // For PISA 0.3.2 target use endpoint invoke readonly tokenURI(tokenId U256) -> (URI String):
 endpoint tokenURI(tokenId U256) -> (URI String):
-    observe Tokens <- NFT.Tokens:
+    observe Tokens <- NFT.Logic.Tokens:
         if !Tokens[tokenId]?:
             throw "Token does not exist"
         return URI Tokens[tokenId].tokenURI
 
 // For PISA 0.3.2 target use endpoint invoke readonly name() -> (Name String):
 endpoint name() -> (Name String):
-    observe ContractName <- NFT.ContractName:
+    observe ContractName <- NFT.Logic.ContractName:
         return Name ContractName
 
 // For PISA 0.3.2 target use endpoint invoke readonly symbol() -> (Symbol String)
 endpoint symbol() -> (Symbol String):
-    observe ContractSymbol <- NFT.ContractSymbol:
+    observe ContractSymbol <- NFT.Logic.ContractSymbol:
         return Symbol ContractSymbol
 
 // ERC-721 optional enumeration extension
 // For PISA 0.3.2 target use endpoint invoke readonly totalSupply() -> (Total U256):
 endpoint totalSupply() -> (Total U256):
-    observe TotalSupply <- NFT.TotalSupply:
+    observe TotalSupply <- NFT.Logic.TotalSupply:
         return Total TotalSupply
 
 // For PISA 0.3.2 target use endpoint invoke readonly tokenByIndex(index U256) -> (TokenId U256)
 endpoint tokenByIndex(index U256) -> (TokenId U256):
-    observe Tokens, TotalSupply <- NFT.Tokens, NFT.TotalSupply:
+    observe Tokens, TotalSupply <- NFT.Logic.Tokens, NFT.Logic.TotalSupply:
         if index >= TotalSupply:
             throw "Index out of bounds"
 
@@ -214,7 +214,7 @@ endpoint tokenByIndex(index U256) -> (TokenId U256):
 
 // For PISA 0.3.2 target use endpoint invoke readonly tokenOfOwnerByIndex(owner Address, index U256) -> (TokenId U256):
 endpoint tokenOfOwnerByIndex(owner Identifier, index U256) -> (TokenId U256):
-    observe Tokens, BalanceOf <- NFT.Tokens, NFT.BalanceOf:
+    observe Tokens, BalanceOf <- NFT.Logic.Tokens, NFT.Logic.BalanceOf:
         if owner == Identifier(0):
             throw "Invalid owner address"
         if BalanceOf[owner]?:

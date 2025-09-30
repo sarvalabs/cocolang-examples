@@ -17,10 +17,10 @@ state logic:
 // given initial value for the logic state.
 // For PISA 0.3.2 target use endpoint deploy Seed(symbol String, supply U256):
 endpoint dynamic Seed(symbol String, supply U256): 
-    mutate symbol -> TokenLedger.Symbol
-    mutate supply -> TokenLedger.Supply
+    mutate symbol -> TokenLedger.Logic.Symbol
+    mutate supply -> TokenLedger.Logic.Supply
 
-    mutate balances <- TokenLedger.Balances:
+    mutate balances <- TokenLedger.Logic.Balances:
         balances[Identifier(Sender)] = supply
 
     emit f"seeded {Identifier(Sender)} with {supply} {symbol}"
@@ -35,13 +35,13 @@ endpoint Decimals() -> (decimals U64):
 // supply U64 value stored in the logic state
 // For PISA 0.3.2 target use endpoint invoke TotalSupply() -> (supply U256)
 endpoint TotalSupply() -> (supply U256):
-    observe supply <- TokenLedger.Supply
+    observe supply <- TokenLedger.Logic.Supply
 
 // BalanceOf() is an invokable that returns the 
 // balance of the given address in the logic state
 // For PISA 0.3.2 target use endpoint invoke BalanceOf(addr Address) -> (balance U256)
 endpoint BalanceOf(addr Identifier) -> (balance U256):
-    observe balances <- TokenLedger.Balances:
+    observe balances <- TokenLedger.Logic.Balances:
         // If balance exists for address, read and return
         // balance = 0, if no entry for the address
         if balances[addr]?:
@@ -59,7 +59,7 @@ event Transfer:
 endpoint dynamic Transfer(amount U256, receiver Identifier):
     memory sender = Identifier(Sender)
 
-    mutate balances <- TokenLedger.Balances:
+    mutate balances <- TokenLedger.Logic.Balances:
         if !balances[sender]?: throw "sender has no balance"
 
         memory balance = balances[sender]
@@ -78,10 +78,10 @@ endpoint dynamic Transfer(amount U256, receiver Identifier):
 // and balance of sender's wallet
 // For PISA 0.3.2 target use endpoint invoke persistent Mint(amount U256)
 endpoint dynamic Mint(amount U256):
-    mutate supply <- TokenLedger.Supply:
+    mutate supply <- TokenLedger.Logic.Supply:
         supply += amount
 
-    mutate balances <- TokenLedger.Balances:
+    mutate balances <- TokenLedger.Logic.Balances:
         memory sender = Identifier(Sender)
 
         if !balances[sender]?:
@@ -94,11 +94,11 @@ endpoint dynamic Mint(amount U256):
 // and balance of sender's wallet
 // For PISA 0.3.2 target use endpoint invoke persistent Burn(amount U256)
 endpoint dynamic Burn(amount U256):
-    mutate supply <- TokenLedger.Supply:
+    mutate supply <- TokenLedger.Logic.Supply:
         if supply < amount: throw "invalid burn amount: exceeds supply"
         supply -= amount
 
-    mutate balances <- TokenLedger.Balances:
+    mutate balances <- TokenLedger.Logic.Balances:
         memory sender = Identifier(Sender)
 
         if !balances[sender]?: 

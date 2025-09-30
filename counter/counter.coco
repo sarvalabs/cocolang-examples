@@ -19,11 +19,11 @@ endpoint dynamic Init():
 // current value for the logic state
 // For PISA 0.3.2 target use endpoint invoke readonly Get() -> (value U64)
 endpoint Get() -> (value U64):
-    observe value <- Counter.value
+    observe value <- Counter.Logic.value
 
 // Increase() is an invokable that 
 // increments U64 value in the logic state
 // For PISA 0.3.2 target use endpoint invoke persistent Increase ()
 endpoint dynamic Increase ():
-    mutate value <- Counter.value:
+    mutate value <- Counter.Logic.value:
         value += 1

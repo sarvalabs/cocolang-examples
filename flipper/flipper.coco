@@ -25,7 +25,7 @@ endpoint dynamic Seed(initial Bool):
 // the current value of the logic state
 // For PISA 0.3.2 target use endpoint invoke readonly Get() -> (value Bool)
 endpoint Get() -> (value Bool):
-    observe value <- Flipper.value
+    observe value <- Flipper.Logic.value
 
 // Set() is an invoke that sets 
 // the given value to the logic state
@@ -37,11 +37,11 @@ endpoint dynamic Set(setval Bool):
 // the current value of the logic state
 // For PISA 0.3.2 target use endpoint invoke persistent Toggle()
 endpoint dynamic Toggle():
-    mutate value <- Flipper.value:
+    mutate value <- Flipper.Logic.value:
         value = !value
 
 // set() is a local function that 
 // sets given value to the logic state
 // For PISA 0.3.2 target use func persistent set(value Bool)
 function dynamic set(value Bool):
-    mutate value -> Flipper.value
+    mutate value -> Flipper.Logic.value
