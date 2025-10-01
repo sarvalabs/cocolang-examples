@@ -1,15 +1,5 @@
 coco asset MAS0
 
-// DefineAsset has to be customized for the asset
-endpoint invoke DefineAsset():
-    asset.Define(
-        symbol: "MOI",
-        decimals: 2,
-        manager: Sender,
-        max_supply: U256(10000),
-        enable_events: true,
-    )
-
 event AssetEvent:
     topic operation String
     field operator Identifier
