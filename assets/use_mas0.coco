@@ -1,0 +1,81 @@
+coco UseMAS0
+
+// To run this in Cocolab, first create three users
+// register Aarani
+// register Baban
+// register Chandra
+
+// Compile asset loigc
+// compile MAS0 from manifest(MAS0/mas0.yaml)
+
+// Set Chandra to be the default sender, she will be the owner of the asset, who first deploys the asset
+// wipe default.sender
+// set default.sender Chandra
+// deploy MAS0.DefineAsset()
+
+// Then mint some funds for the owner
+// invoke UseMAS0.MintForSender(assetId: MAS0, amount: 1000)
+
+// Then transfer some funds directly to Aarani
+// invoke UseMAS0.Transfer(assetId: MAS0, receiver: Aarani, amount: 10)
+
+// Lockup some funds for Baban and then he can release it
+// invoke UseMAS0.Lockup(assetId: MAS0, beneficiary: Baban, amount 15)
+
+// Baban can release locked funds for himself (anyone can call Release)
+// set default.sender Baban
+// invoke UseMAS0.Release(assetId: MAS0, benefactor: Chandra, beneficiary: Baban, amount: 15)
+
+// At last, check the balances: anyone can check anyone's balance
+// invoke UseMAS0.BalanceOf(assetId: MAS0, address: Aarani)
+// invoke UseMAS0.BalanceOf(assetId: MAS0, address: Baban)
+// invoke UseMAS0.BalanceOf(assetId: MAS0, address: Chandra)
+
+interface MAS0Asset:
+    asset:
+        Mint(beneficiary Identifier, amount U256)
+        Burn(amount U256)
+        Transfer(beneficiary Identifier, amount U256)
+        TransferFrom(benefactor, beneficiary Identifier, amount U256)
+        Lockup(beneficiary Identifier, amount U256)
+        Release(benefactor, beneficiary Identifier, amount U256)
+        Approve(beneficiary Identifier, amount U256, expires_at U64)
+        Revoke(beneficiary Identifier)
+
+        // Readers
+        Symbol() -> (symbol String)
+        BalanceOf(address Identifier) -> (balance U256)
+
+endpoint  Mint(assetId Identifier, amount U256):
+    memory assetIface = MAS0Asset(assetId)
+    // mint double and burn half, just because I can
+    assetIface.Mint(beneficiary: Sender, amount: amount*2)
+    assetIface.Burn(amount)
+
+endpoint  Transfer(assetId Identifier, beneficiary Identifier, amount U256):
+    memory assetIface = MAS0Asset(assetId)
+    assetIface.Transfer(beneficiary, amount)
+
+endpoint TransferFrom(assetId Identifier, benefactor, beneficiary Identifier, amount U256):
+    memory assetIface = MAS0Asset(assetId)
+    assetIface.TransferFrom(benefactor, beneficiary, amount)
+
+endpoint Lockup(assetId Identifier, beneficiary Identifier, amount U256):
+    memory assetIface = MAS0Asset(assetId)
+    assetIface.Lockup(beneficiary, amount)
+
+endpoint Release(assetId Identifier, benefactor Identifier, beneficiary Identifier, amount U256):
+    memory assetIface = MAS0Asset(assetId)
+    assetIface.Release(benefactor, beneficiary, amount)
+
+endpoint Approve(assetId Identifier, beneficiary Identifier, amount U256, expires_at U64):
+    memory assetIface = MAS0Asset(assetId)
+    assetIface.Approve(beneficiary, amount, expires_at)
+
+endpoint Revoke(assetId Identifier, beneficiary Identifier):
+    memory assetIface = MAS0Asset(assetId)
+    assetIface.Revoke(beneficiary)
+
+endpoint BalanceOf(assetId Identifier, address Identifier) -> (balance U256):
+    memory assetIface = MAS0Asset(assetId)
+    balance = assetIface.BalanceOf(address)

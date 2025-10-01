@@ -1,0 +1,364 @@
+syntax: 1
+engine:
+  kind: PISA
+  flags: []
+  version: 0.5.0
+kind: logic
+elements:
+- ptr: 0
+  kind: literal
+  data:
+    type: u256
+    value: '0x0302'
+- ptr: 1
+  kind: interface
+  data:
+    name: MAS0Asset
+    endpoint:
+    - name: Mint
+      mode: asset
+      accepts:
+      - slot: 0
+        label: beneficiary
+        type: identifier
+      - slot: 1
+        label: amount
+        type: u256
+      returns: []
+    - name: Burn
+      mode: asset
+      accepts:
+      - slot: 0
+        label: amount
+        type: u256
+      returns: []
+    - name: Transfer
+      mode: asset
+      accepts:
+      - slot: 0
+        label: beneficiary
+        type: identifier
+      - slot: 1
+        label: amount
+        type: u256
+      returns: []
+    - name: TransferFrom
+      mode: asset
+      accepts:
+      - slot: 0
+        label: benefactor
+        type: identifier
+      - slot: 1
+        label: beneficiary
+        type: identifier
+      - slot: 2
+        label: amount
+        type: u256
+      returns: []
+    - name: Lockup
+      mode: asset
+      accepts:
+      - slot: 0
+        label: beneficiary
+        type: identifier
+      - slot: 1
+        label: amount
+        type: u256
+      returns: []
+    - name: Release
+      mode: asset
+      accepts:
+      - slot: 0
+        label: benefactor
+        type: identifier
+      - slot: 1
+        label: beneficiary
+        type: identifier
+      - slot: 2
+        label: amount
+        type: u256
+      returns: []
+    - name: Approve
+      mode: asset
+      accepts:
+      - slot: 0
+        label: beneficiary
+        type: identifier
+      - slot: 1
+        label: amount
+        type: u256
+      - slot: 2
+        label: expires_at
+        type: u64
+      returns: []
+    - name: Revoke
+      mode: asset
+      accepts:
+      - slot: 0
+        label: beneficiary
+        type: identifier
+      returns: []
+    - name: Symbol
+      mode: asset
+      accepts: []
+      returns:
+      - slot: 0
+        label: symbol
+        type: string
+    - name: BalanceOf
+      mode: asset
+      accepts:
+      - slot: 0
+        label: address
+        type: identifier
+      returns:
+      - slot: 0
+        label: balance
+        type: u256
+- ptr: 2
+  deps:
+  - 0
+  kind: callable
+  data:
+    name: Mint
+    mode: static
+    kind: invoke
+    accepts:
+    - slot: 0
+      label: assetId
+      type: identifier
+    - slot: 1
+      label: amount
+      type: u256
+    returns: []
+    executes:
+      asm:
+      - OBTAIN $0 &0
+      - LDPTR1 $1 0x1
+      - XBIND $0 $1 $0
+      - CARGS $1
+      - ORIGIN $2
+      - SETFLD $1 &0 $2
+      - OBTAIN $2 &1
+      - LDPTR1 $3 0x0
+      - LMAKE $3 $3
+      - MUL $3 $2 $3
+      - SETFLD $1 &1 $3
+      - CALLX $1 $0 &0 $1
+      - CARGS $1
+      - SETFLD $1 &0 $2
+      - CALLX $0 $0 &1 $1
+    catches: []
+- ptr: 3
+  kind: callable
+  data:
+    name: Transfer
+    mode: static
+    kind: invoke
+    accepts:
+    - slot: 0
+      label: assetId
+      type: identifier
+    - slot: 1
+      label: beneficiary
+      type: identifier
+    - slot: 2
+      label: amount
+      type: u256
+    returns: []
+    executes:
+      asm:
+      - OBTAIN $0 &0
+      - LDPTR1 $1 0x1
+      - XBIND $0 $1 $0
+      - CARGS $1
+      - OBTAIN $2 &1
+      - SETFLD $1 &0 $2
+      - OBTAIN $2 &2
+      - SETFLD $1 &1 $2
+      - CALLX $0 $0 &2 $1
+    catches: []
+- ptr: 4
+  kind: callable
+  data:
+    name: TransferFrom
+    mode: static
+    kind: invoke
+    accepts:
+    - slot: 0
+      label: assetId
+      type: identifier
+    - slot: 1
+      label: benefactor
+      type: identifier
+    - slot: 2
+      label: beneficiary
+      type: identifier
+    - slot: 3
+      label: amount
+      type: u256
+    returns: []
+    executes:
+      asm:
+      - OBTAIN $0 &0
+      - LDPTR1 $1 0x1
+      - XBIND $0 $1 $0
+      - CARGS $1
+      - OBTAIN $2 &1
+      - SETFLD $1 &0 $2
+      - OBTAIN $2 &2
+      - SETFLD $1 &1 $2
+      - OBTAIN $2 &3
+      - SETFLD $1 &2 $2
+      - CALLX $0 $0 &3 $1
+    catches: []
+- ptr: 5
+  kind: callable
+  data:
+    name: Lockup
+    mode: static
+    kind: invoke
+    accepts:
+    - slot: 0
+      label: assetId
+      type: identifier
+    - slot: 1
+      label: beneficiary
+      type: identifier
+    - slot: 2
+      label: amount
+      type: u256
+    returns: []
+    executes:
+      asm:
+      - OBTAIN $0 &0
+      - LDPTR1 $1 0x1
+      - XBIND $0 $1 $0
+      - CARGS $1
+      - OBTAIN $2 &1
+      - SETFLD $1 &0 $2
+      - OBTAIN $2 &2
+      - SETFLD $1 &1 $2
+      - CALLX $0 $0 &4 $1
+    catches: []
+- ptr: 6
+  kind: callable
+  data:
+    name: Release
+    mode: static
+    kind: invoke
+    accepts:
+    - slot: 0
+      label: assetId
+      type: identifier
+    - slot: 1
+      label: benefactor
+      type: identifier
+    - slot: 2
+      label: beneficiary
+      type: identifier
+    - slot: 3
+      label: amount
+      type: u256
+    returns: []
+    executes:
+      asm:
+      - OBTAIN $0 &0
+      - LDPTR1 $1 0x1
+      - XBIND $0 $1 $0
+      - CARGS $1
+      - OBTAIN $2 &1
+      - SETFLD $1 &0 $2
+      - OBTAIN $2 &2
+      - SETFLD $1 &1 $2
+      - OBTAIN $2 &3
+      - SETFLD $1 &2 $2
+      - CALLX $0 $0 &5 $1
+    catches: []
+- ptr: 7
+  kind: callable
+  data:
+    name: Approve
+    mode: static
+    kind: invoke
+    accepts:
+    - slot: 0
+      label: assetId
+      type: identifier
+    - slot: 1
+      label: beneficiary
+      type: identifier
+    - slot: 2
+      label: amount
+      type: u256
+    - slot: 3
+      label: expires_at
+      type: u64
+    returns: []
+    executes:
+      asm:
+      - OBTAIN $0 &0
+      - LDPTR1 $1 0x1
+      - XBIND $0 $1 $0
+      - CARGS $1
+      - OBTAIN $2 &1
+      - SETFLD $1 &0 $2
+      - OBTAIN $2 &2
+      - SETFLD $1 &1 $2
+      - OBTAIN $2 &3
+      - SETFLD $1 &2 $2
+      - CALLX $0 $0 &6 $1
+    catches: []
+- ptr: 8
+  kind: callable
+  data:
+    name: Revoke
+    mode: static
+    kind: invoke
+    accepts:
+    - slot: 0
+      label: assetId
+      type: identifier
+    - slot: 1
+      label: beneficiary
+      type: identifier
+    returns: []
+    executes:
+      asm:
+      - OBTAIN $0 &0
+      - LDPTR1 $1 0x1
+      - XBIND $0 $1 $0
+      - CARGS $1
+      - OBTAIN $2 &1
+      - SETFLD $1 &0 $2
+      - CALLX $0 $0 &7 $1
+    catches: []
+- ptr: 9
+  kind: callable
+  data:
+    name: BalanceOf
+    mode: static
+    kind: invoke
+    accepts:
+    - slot: 0
+      label: assetId
+      type: identifier
+    - slot: 1
+      label: address
+      type: identifier
+    returns:
+    - slot: 0
+      label: balance
+      type: u256
+    executes:
+      asm:
+      - OBTAIN $0 &0
+      - LDPTR1 $1 0x1
+      - XBIND $0 $1 $0
+      - CARGS $1
+      - OBTAIN $2 &1
+      - SETFLD $1 &0 $2
+      - CALLX $0 $0 &9 $1
+      - GETFLD $0 $0 &0
+      - YIELD $0 &0
+    catches: []
